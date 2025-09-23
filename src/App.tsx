@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, MouseEvent, WheelEvent } from 'react'
 import styles from './App.module.css'
+import { StickyNote, StickyNoteData } from './StickyNote'
 
 interface ViewState {
     x: number
@@ -12,13 +13,41 @@ export function App() {
     const [viewState, setViewState] = useState<ViewState>({ x: 0, y: 0, zoom: 1 })
     const [isPanning, setIsPanning] = useState(false)
     const [startPan, setStartPan] = useState({ x: 0, y: 0 })
+    const [notes, setNotes] = useState<StickyNoteData[]>([])
+    const [nextZIndex, setNextZIndex] = useState(1)
 
     // Handle mouse down for panning
     const handleMouseDown = (e: MouseEvent) => {
-        if (e.button === 0) { // Left click
+        // Only pan if clicking on canvas, not on notes
+        if (e.target === e.currentTarget && e.button === 0) { // Left click
             setIsPanning(true)
             setStartPan({ x: e.clientX - viewState.x, y: e.clientY - viewState.y })
             e.preventDefault()
+        }
+    }
+
+    // Handle double click to create new note
+    const handleDoubleClick = (e: MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            const rect = canvasRef.current?.getBoundingClientRect()
+            if (rect) {
+                const x = (e.clientX - rect.left - viewState.x) / viewState.zoom
+                const y = (e.clientY - rect.top - viewState.y) / viewState.zoom
+
+                const newNote: StickyNoteData = {
+                    id: `note-${Date.now()}`,
+                    x,
+                    y,
+                    width: 200,
+                    height: 150,
+                    content: '',
+                    color: '#ffeb3b',
+                    zIndex: nextZIndex
+                }
+
+                setNotes([...notes, newNote])
+                setNextZIndex(nextZIndex + 1)
+            }
         }
     }
 
@@ -59,6 +88,26 @@ export function App() {
         }
     }
 
+    // Handle note updates
+    const handleNoteUpdate = (id: string, updates: Partial<StickyNoteData>) => {
+        setNotes(notes.map(note =>
+            note.id === id ? { ...note, ...updates } : note
+        ))
+    }
+
+    // Handle note deletion
+    const handleNoteDelete = (id: string) => {
+        setNotes(notes.filter(note => note.id !== id))
+    }
+
+    // Handle note selection (bring to front)
+    const handleNoteSelect = (id: string) => {
+        setNotes(notes.map(note =>
+            note.id === id ? { ...note, zIndex: nextZIndex } : note
+        ))
+        setNextZIndex(nextZIndex + 1)
+    }
+
     // Add global mouse up listener
     useEffect(() => {
         const handleGlobalMouseUp = () => setIsPanning(false)
@@ -89,6 +138,7 @@ export function App() {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onWheel={handleWheel}
+            onDoubleClick={handleDoubleClick}
         >
             {/* Dynamic grid background like Figma */}
             <svg className={styles.gridSvg} width="100%" height="100%">
@@ -127,6 +177,24 @@ export function App() {
                 <rect width="100%" height="100%" fill="url(#largeGrid)" />
             </svg>
 
+            {/* Viewport for notes */}
+            <div
+                className={styles.viewport}
+                style={{
+                    transform: `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.zoom})`,
+                }}
+            >
+                {notes.map(note => (
+                    <StickyNote
+                        key={note.id}
+                        {...note}
+                        onUpdate={handleNoteUpdate}
+                        onDelete={handleNoteDelete}
+                        onSelect={handleNoteSelect}
+                    />
+                ))}
+            </div>
+
             {/* Controls overlay */}
             <div className={styles.controls}>
                 <button onClick={() => setViewState({ x: 0, y: 0, zoom: 1 })}>
@@ -134,6 +202,13 @@ export function App() {
                 </button>
                 <span className={styles.zoomLevel}>Zoom: {Math.round(viewState.zoom * 100)}%</span>
             </div>
+
+            {/* Help text */}
+            {notes.length === 0 && (
+                <div className={styles.helpText}>
+                    Double-click anywhere to create a sticky note
+                </div>
+            )}
         </div>
     )
 }
