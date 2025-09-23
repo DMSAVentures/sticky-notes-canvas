@@ -1,0 +1,63 @@
+.trashCan {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    color: #666;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.trashCan:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: #333;
+}
+
+.trashCan.hovered {
+    transform: scale(1.1);
+    background: rgba(255, 100, 100, 0.1);
+    border-color: rgba(255, 0, 0, 0.3);
+    color: #d32f2f;
+}
+
+.trashCan.active {
+    transform: scale(1.15);
+    background: rgba(255, 100, 100, 0.2);
+    border-color: rgba(255, 0, 0, 0.5);
+    color: #d32f2f;
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.2);
+}
+
+.trashCan.active svg {
+    animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+
+.label {
+    position: absolute;
+    top: -30px;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+}

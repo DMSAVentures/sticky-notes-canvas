@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, MouseEvent, WheelEvent } from 'react'
 import styles from './App.module.css'
 import { StickyNote, StickyNoteData } from './components/StickyNote'
+import { TrashCan } from './components/TrashCan'
 
 interface ViewState {
     x: number
@@ -15,6 +16,7 @@ export function App() {
     const [startPan, setStartPan] = useState({ x: 0, y: 0 })
     const [notes, setNotes] = useState<StickyNoteData[]>([])
     const [nextZIndex, setNextZIndex] = useState(1)
+    const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null)
 
     // Handle mouse down for panning
     const handleMouseDown = (e: MouseEvent) => {
@@ -215,6 +217,17 @@ export function App() {
                     Double-click anywhere to create a sticky note
                 </div>
             )}
+
+            {/* Trash can for deleting notes */}
+            <TrashCan
+                isActive={draggingNoteId !== null}
+                onDrop={() => {
+                    if (draggingNoteId) {
+                        handleNoteDelete(draggingNoteId)
+                        setDraggingNoteId(null)
+                    }
+                }}
+            />
         </div>
     )
 }
