@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, MouseEvent, WheelEvent } from 'react'
 import styles from './App.module.css'
 import { StickyNote, StickyNoteData } from './components/StickyNote'
 import { TrashCan } from './components/TrashCan'
+import { storageService } from './services/storage.service'
 
 interface ViewState {
     x: number
@@ -17,6 +18,8 @@ export function App() {
     const [notes, setNotes] = useState<StickyNoteData[]>([])
     const [nextZIndex, setNextZIndex] = useState(1)
     const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null)
+    const [canvasId, setCanvasId] = useState<string | null>(null)
+    const [isSaving, setIsSaving] = useState(false)
 
     // Handle mouse down for panning
     const handleMouseDown = (e: MouseEvent) => {
@@ -37,7 +40,7 @@ export function App() {
                 const y = (e.clientY - rect.top - viewState.y) / viewState.zoom
 
                 const newNote: StickyNoteData = {
-                    id: `note-${Date.now()}`,
+                    id: storageService.generateId(),
                     x,
                     y,
                     width: 200,
@@ -115,6 +118,41 @@ export function App() {
             setNextZIndex(nextZIndex + 1)
         }
     }
+
+    // Initialize or load canvas on mount
+    useEffect(() => {
+        const storage = storageService.load()
+
+        if (storage && storage.lastActiveCanvasId) {
+            // Load last active canvas
+            const canvasData = storageService.loadCanvas(storage.lastActiveCanvasId)
+            if (canvasData) {
+                setCanvasId(storage.lastActiveCanvasId)
+                setNotes(canvasData.notes)
+                setViewState(canvasData.canvas.viewState)
+                const maxZ = Math.max(0, ...canvasData.notes.map(n => n.zIndex))
+                setNextZIndex(maxZ + 1)
+            }
+        } else {
+            // Create new canvas
+            const newCanvas = storageService.createCanvas()
+            setCanvasId(newCanvas.id)
+            storageService.saveCanvas(newCanvas.id, [], { x: 0, y: 0, zoom: 1 })
+        }
+    }, [])
+
+    // Auto-save on changes
+    useEffect(() => {
+        if (!canvasId) return
+
+        setIsSaving(true)
+        const timeoutId = setTimeout(() => {
+            storageService.saveCanvas(canvasId, notes, viewState)
+            setIsSaving(false)
+        }, 500) // Debounce saves by 500ms
+
+        return () => clearTimeout(timeoutId)
+    }, [notes, viewState, canvasId])
 
     // Add global mouse up listener
     useEffect(() => {
@@ -212,6 +250,8 @@ export function App() {
                     Reset View
                 </button>
                 <span className={styles.zoomLevel}>Zoom: {Math.round(viewState.zoom * 100)}%</span>
+                {isSaving && <span className={styles.saveIndicator}>Saving...</span>}
+                {!isSaving && canvasId && <span className={styles.saveIndicator}>✓ Saved</span>}
             </div>
 
             {/* Help text */}
