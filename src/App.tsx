@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, MouseEvent, WheelEvent } from 'react'
 import styles from './App.module.css'
-import { StickyNote, StickyNoteData } from './StickyNote'
+import { StickyNote, StickyNoteData } from './components/StickyNote'
 
 interface ViewState {
     x: number

@@ -1,41 +1,7 @@
-import { useState, useRef, useEffect, MouseEvent, ChangeEvent, KeyboardEvent, FocusEvent } from 'react'
+import { useState, useRef, useEffect, MouseEvent, KeyboardEvent, FocusEvent } from 'react'
 import styles from './StickyNote.module.css'
-
-interface StickyNoteProps {
-    id: string
-    x: number
-    y: number
-    width: number
-    height: number
-    content: string
-    color: string
-    onUpdate: (id: string, updates: Partial<StickyNoteData>) => void
-    onDelete: (id: string) => void
-    zIndex: number
-    onSelect: (id: string) => void
-}
-
-export interface StickyNoteData {
-    id: string
-    x: number
-    y: number
-    width: number
-    height: number
-    content: string
-    color: string
-    zIndex: number
-}
-
-const COLORS = [
-    '#ffeb3b', // Yellow
-    '#ff9800', // Orange
-    '#4caf50', // Green
-    '#2196f3', // Blue
-    '#e91e63', // Pink
-    '#9c27b0', // Purple
-    '#00bcd4', // Cyan
-    '#ff5722', // Deep Orange
-]
+import { NoteContent } from './NoteContent'
+import { StickyNoteProps, NOTE_COLORS } from './types'
 
 export function StickyNote({
     id,
@@ -55,12 +21,9 @@ export function StickyNote({
     const [isResizing, setIsResizing] = useState(false)
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
     const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 })
-    const [noteContent, setNoteContent] = useState(content)
     const [showColorPicker, setShowColorPicker] = useState(false)
     const [isFocused, setIsFocused] = useState(false)
     const noteRef = useRef<HTMLDivElement>(null)
-    const textareaRef = useRef<HTMLTextAreaElement>(null)
-    const contentRef = useRef<HTMLDivElement>(null)
 
     // Handle dragging
     const handleMouseDown = (e: MouseEvent) => {
@@ -90,18 +53,9 @@ export function StickyNote({
         })
     }
 
-    // Handle text editing
-    const handleDoubleClick = () => {
-        setIsEditing(true)
-    }
-
-    const handleContentChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        setNoteContent(e.target.value)
-    }
-
-    const handleContentBlur = () => {
-        setIsEditing(false)
-        onUpdate(id, { content: noteContent })
+    // Handle content update
+    const handleContentUpdate = (newContent: string) => {
+        onUpdate(id, { content: newContent })
     }
 
     // Handle color change
@@ -117,11 +71,6 @@ export function StickyNote({
         if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()
             setIsEditing(true)
-        }
-        // Escape to stop editing
-        else if (isEditing && e.key === 'Escape') {
-            setIsEditing(false)
-            noteRef.current?.focus()
         }
         // Delete key to delete note
         else if (!isEditing && e.key === 'Delete') {
@@ -216,18 +165,6 @@ export function StickyNote({
         }
     }, [isResizing, resizeStart, id, onUpdate])
 
-    // Focus textarea when editing starts
-    useEffect(() => {
-        if (isEditing && textareaRef.current) {
-            textareaRef.current.focus()
-            textareaRef.current.select()
-        }
-    }, [isEditing])
-
-    // Update content when it changes from outside
-    useEffect(() => {
-        setNoteContent(content)
-    }, [content])
 
     return (
         <article
@@ -243,13 +180,12 @@ export function StickyNote({
                 cursor: isDragging ? 'grabbing' : 'grab'
             }}
             onMouseDown={handleMouseDown}
-            onDoubleClick={handleDoubleClick}
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
             onBlur={handleBlur}
             tabIndex={0}
             role="article"
-            aria-label={`Sticky note ${noteContent ? `with content: ${noteContent.substring(0, 50)}` : 'empty'}`}
+            aria-label={`Sticky note ${content ? `with content: ${content.substring(0, 50)}` : 'empty'}`}
             aria-describedby={`note-help-${id}`}
         >
             {/* Screen reader help text */}
@@ -291,7 +227,7 @@ export function StickyNote({
                     role="menu"
                     aria-label="Color options"
                 >
-                    {COLORS.map((c, index) => (
+                    {NOTE_COLORS.map((c, index) => (
                         <button
                             key={c}
                             className={styles.colorOption}
@@ -309,30 +245,16 @@ export function StickyNote({
             )}
 
             {/* Content area */}
-            <div className={styles.content} ref={contentRef}>
-                {isEditing ? (
-                    <textarea
-                        ref={textareaRef}
-                        className={styles.textarea}
-                        value={noteContent}
-                        onChange={handleContentChange}
-                        onBlur={handleContentBlur}
-                        onClick={(e) => e.stopPropagation()}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        aria-label="Note content"
-                        placeholder="Type your note here..."
-                    />
-                ) : (
-                    <div
-                        className={styles.text}
-                        role="textbox"
-                        aria-readonly="true"
-                        aria-label="Note content (read-only)"
-                    >
-                        {noteContent || 'Double-click to edit'}
-                    </div>
-                )}
-            </div>
+            <NoteContent
+                content={content}
+                isEditing={isEditing}
+                onContentChange={handleContentUpdate}
+                onEditStart={() => setIsEditing(true)}
+                onEditEnd={() => {
+                    setIsEditing(false)
+                    noteRef.current?.focus()
+                }}
+            />
 
             {/* Resize handle */}
             <div
