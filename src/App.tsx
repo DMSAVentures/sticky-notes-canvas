@@ -102,10 +102,16 @@ export function App() {
 
     // Handle note selection (bring to front)
     const handleNoteSelect = (id: string) => {
-        setNotes(notes.map(note =>
-            note.id === id ? { ...note, zIndex: nextZIndex } : note
-        ))
-        setNextZIndex(nextZIndex + 1)
+        // Only update if the note is not already on top
+        const selectedNote = notes.find(note => note.id === id)
+        const maxZIndex = Math.max(...notes.map(n => n.zIndex))
+
+        if (selectedNote && selectedNote.zIndex < maxZIndex) {
+            setNotes(notes.map(note =>
+                note.id === id ? { ...note, zIndex: nextZIndex } : note
+            ))
+            setNextZIndex(nextZIndex + 1)
+        }
     }
 
     // Add global mouse up listener

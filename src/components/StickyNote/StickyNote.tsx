@@ -27,7 +27,11 @@ export function StickyNote({
 
     // Handle dragging
     const handleMouseDown = (e: MouseEvent) => {
-        if ((e.target as HTMLElement).classList.contains(styles.resizeHandle)) {
+        // Don't start dragging if clicking on resize handle or header controls
+        const target = e.target as HTMLElement
+        if (target.classList.contains(styles.resizeHandle) ||
+            target.closest(`.${styles.header}`) ||
+            target.closest(`.${styles.colorPicker}`)) {
             return
         }
 
@@ -104,8 +108,12 @@ export function StickyNote({
 
     // Handle focus
     const handleFocus = (e: FocusEvent<HTMLDivElement>) => {
+        // Don't select if focus came from clicking a button within the note
+        const target = e.target as HTMLElement
+        if (!target.closest('button')) {
+            onSelect(id)
+        }
         setIsFocused(true)
-        onSelect(id)
     }
 
     const handleBlur = (e: FocusEvent<HTMLDivElement>) => {
@@ -199,7 +207,15 @@ export function StickyNote({
                     className={styles.colorButton}
                     onClick={(e) => {
                         e.stopPropagation()
+                        e.preventDefault()
                         setShowColorPicker(!showColorPicker)
+                    }}
+                    onMouseDown={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                    }}
+                    onFocus={(e) => {
+                        e.stopPropagation()
                     }}
                     style={{ backgroundColor: color }}
                     aria-label="Change note color"
@@ -210,9 +226,17 @@ export function StickyNote({
                     className={styles.deleteButton}
                     onClick={(e) => {
                         e.stopPropagation()
+                        e.preventDefault()
                         if (confirm('Delete this note?')) {
                             onDelete(id)
                         }
+                    }}
+                    onMouseDown={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                    }}
+                    onFocus={(e) => {
+                        e.stopPropagation()
                     }}
                     aria-label="Delete note"
                 >
@@ -234,7 +258,12 @@ export function StickyNote({
                             style={{ backgroundColor: c }}
                             onClick={(e) => {
                                 e.stopPropagation()
+                                e.preventDefault()
                                 handleColorChange(c)
+                            }}
+                            onMouseDown={(e) => {
+                                e.stopPropagation()
+                                e.preventDefault()
                             }}
                             role="menuitem"
                             aria-label={`Color ${index + 1}`}
