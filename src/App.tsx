@@ -196,9 +196,12 @@ export function App() {
                     <StickyNote
                         key={note.id}
                         {...note}
+                        zoom={viewState.zoom}
                         onUpdate={handleNoteUpdate}
                         onDelete={handleNoteDelete}
                         onSelect={handleNoteSelect}
+                        onDragStart={(id) => setDraggingNoteId(id)}
+                        onDragEnd={() => setDraggingNoteId(null)}
                     />
                 ))}
             </div>

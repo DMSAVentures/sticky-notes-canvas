@@ -21,6 +21,9 @@ export interface StickyNoteProps {
     onDelete: (id: string) => void
     zIndex: number
     onSelect: (id: string) => void
+    zoom?: number
+    onDragStart?: (id: string) => void
+    onDragEnd?: (id: string) => void
 }
 
 export const NOTE_COLORS = [

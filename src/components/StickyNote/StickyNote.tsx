@@ -14,7 +14,10 @@ export function StickyNote({
     onUpdate,
     onDelete,
     zIndex,
-    onSelect
+    onSelect,
+    zoom = 1,
+    onDragStart,
+    onDragEnd
 }: StickyNoteProps) {
     const [isEditing, setIsEditing] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
@@ -38,9 +41,10 @@ export function StickyNote({
         onSelect(id)
         setIsDragging(true)
         setDragStart({
-            x: e.clientX - x,
-            y: e.clientY - y
+            x: e.clientX - x * zoom,
+            y: e.clientY - y * zoom
         })
+        onDragStart?.(id)
         e.preventDefault()
     }
 
@@ -128,13 +132,15 @@ export function StickyNote({
         if (!isDragging) return
 
         const handleMouseMove = (e: globalThis.MouseEvent) => {
-            const newX = e.clientX - dragStart.x
-            const newY = e.clientY - dragStart.y
+            // Compensate for zoom level - when zoomed out, move faster
+            const newX = (e.clientX - dragStart.x) / zoom
+            const newY = (e.clientY - dragStart.y) / zoom
             onUpdate(id, { x: newX, y: newY })
         }
 
         const handleMouseUp = () => {
             setIsDragging(false)
+            onDragEnd?.(id)
         }
 
         window.addEventListener('mousemove', handleMouseMove)
@@ -144,7 +150,7 @@ export function StickyNote({
             window.removeEventListener('mousemove', handleMouseMove)
             window.removeEventListener('mouseup', handleMouseUp)
         }
-    }, [isDragging, dragStart.x, dragStart.y, id, onUpdate])
+    }, [isDragging, dragStart.x, dragStart.y, id, onUpdate, zoom, onDragEnd])
 
     // Handle resizing
     useEffect(() => {
