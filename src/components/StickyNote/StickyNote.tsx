@@ -23,6 +23,7 @@ export function StickyNote({
     const [isDragging, setIsDragging] = useState(false)
     const [isResizing, setIsResizing] = useState(false)
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+    const [originalPosition, setOriginalPosition] = useState({ x: 0, y: 0 })
     const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 })
     const [showColorPicker, setShowColorPicker] = useState(false)
     const [isFocused, setIsFocused] = useState(false)
@@ -40,6 +41,7 @@ export function StickyNote({
 
         onSelect(id)
         setIsDragging(true)
+        setOriginalPosition({ x, y }) // Store original position for ESC key
         setDragStart({
             x: e.clientX - x * zoom,
             y: e.clientY - y * zoom
@@ -138,19 +140,43 @@ export function StickyNote({
             onUpdate(id, { x: newX, y: newY })
         }
 
-        const handleMouseUp = () => {
+        const handleMouseUp = (e: globalThis.MouseEvent) => {
+            // Check if dropped on trash can
+            const trashCan = document.querySelector('[aria-label="Drop here to delete note"]')
+            if (trashCan) {
+                const rect = trashCan.getBoundingClientRect()
+                if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                    // Dropped on trash can - delete note
+                    setIsDragging(false)
+                    onDragEnd?.(id)
+                    onDelete(id)
+                    return
+                }
+            }
             setIsDragging(false)
             onDragEnd?.(id)
         }
 
+        const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                // Reset to original position
+                onUpdate(id, { x: originalPosition.x, y: originalPosition.y })
+                setIsDragging(false)
+                onDragEnd?.(id)
+            }
+        }
+
         window.addEventListener('mousemove', handleMouseMove)
         window.addEventListener('mouseup', handleMouseUp)
+        window.addEventListener('keydown', handleKeyDown)
 
         return () => {
             window.removeEventListener('mousemove', handleMouseMove)
             window.removeEventListener('mouseup', handleMouseUp)
+            window.removeEventListener('keydown', handleKeyDown)
         }
-    }, [isDragging, dragStart.x, dragStart.y, id, onUpdate, zoom, onDragEnd])
+    }, [isDragging, dragStart.x, dragStart.y, id, onUpdate, zoom, onDragEnd, onDelete, originalPosition])
 
     // Handle resizing
     useEffect(() => {
@@ -183,7 +209,7 @@ export function StickyNote({
     return (
         <article
             ref={noteRef}
-            className={`${styles.stickyNote} ${isFocused ? styles.focused : ''}`}
+            className={`${styles.stickyNote} ${isFocused ? styles.focused : ''} ${isDragging ? styles.dragging : ''}`}
             style={{
                 left: x,
                 top: y,
