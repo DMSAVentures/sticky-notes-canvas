@@ -10,6 +10,8 @@ interface UseNoteManagementProps {
 export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
     const { notes, setNotes, viewState, nextZIndex, setNextZIndex } = useCanvas()
     const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null)
+    const [newNoteId, setNewNoteId] = useState<string | null>(null)
+    const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
 
     // Handle double click to create new note
     const handleDoubleClick = (e: MouseEvent) => {
@@ -19,8 +21,9 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
                 const x = (e.clientX - rect.left - viewState.x) / viewState.zoom
                 const y = (e.clientY - rect.top - viewState.y) / viewState.zoom
 
+                const noteId = storageService.generateId()
                 const newNote: StickyNoteData = {
-                    id: storageService.generateId(),
+                    id: noteId,
                     x,
                     y,
                     width: 200,
@@ -32,6 +35,7 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
 
                 setNotes(prev => [...prev, newNote])
                 setNextZIndex(prev => prev + 1)
+                setNewNoteId(noteId) // Track the new note to auto-focus it
             }
         }
     }
@@ -82,6 +86,10 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
     return {
         notes,
         draggingNoteId,
+        newNoteId,
+        setNewNoteId,
+        editingNoteId,
+        setEditingNoteId,
         handleDoubleClick,
         handleNoteUpdate,
         handleNoteDelete,

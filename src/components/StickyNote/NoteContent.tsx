@@ -31,7 +31,9 @@ export function NoteContent({
     useEffect(() => {
         if (isEditing && textareaRef.current) {
             textareaRef.current.focus()
-            textareaRef.current.select()
+            // Move cursor to end of text for appending
+            const length = textareaRef.current.value.length
+            textareaRef.current.setSelectionRange(length, length)
         }
     }, [isEditing])
 
@@ -44,11 +46,6 @@ export function NoteContent({
         onContentChange(localContent)
     }
 
-    const handleDoubleClick = () => {
-        if (!isEditing) {
-            onEditStart()
-        }
-    }
 
     const handleTextareaKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Escape') {
@@ -65,7 +62,6 @@ export function NoteContent({
         <div
             className={styles.content}
             ref={contentRef}
-            onDoubleClick={handleDoubleClick}
             onKeyDown={onKeyDown}
         >
             {isEditing ? (
@@ -88,7 +84,7 @@ export function NoteContent({
                     aria-readonly="true"
                     aria-label="Note content (read-only)"
                 >
-                    {localContent || 'Double-click to edit'}
+                    {localContent || 'Click to edit'}
                 </div>
             )}
         </div>

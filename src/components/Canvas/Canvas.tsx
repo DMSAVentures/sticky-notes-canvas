@@ -24,6 +24,10 @@ export function Canvas() {
     const {
         notes,
         draggingNoteId,
+        newNoteId,
+        setNewNoteId,
+        editingNoteId,
+        setEditingNoteId,
         handleDoubleClick,
         handleNoteUpdate,
         handleNoteDelete,
@@ -33,6 +37,14 @@ export function Canvas() {
         handleTrashDrop
     } = useNoteManagement({ canvasRef })
 
+    // Handle clicking on canvas to exit edit mode
+    const handleCanvasClick = (e: React.MouseEvent) => {
+        // Only if clicking directly on canvas (not on notes or controls)
+        if (e.target === e.currentTarget) {
+            setEditingNoteId(null)
+        }
+    }
+
     return (
         <div
             ref={canvasRef}
@@ -41,6 +53,7 @@ export function Canvas() {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onWheel={handleWheel}
+            onClick={handleCanvasClick}
             onDoubleClick={handleDoubleClick}
         >
             <CanvasGrid
@@ -52,11 +65,15 @@ export function Canvas() {
             <CanvasViewport
                 notes={notes}
                 viewState={viewState}
+                newNoteId={newNoteId}
+                editingNoteId={editingNoteId}
                 onNoteUpdate={handleNoteUpdate}
                 onNoteDelete={handleNoteDelete}
                 onNoteSelect={handleNoteSelect}
                 onNoteDragStart={handleNoteDragStart}
                 onNoteDragEnd={handleNoteDragEnd}
+                onNewNoteRendered={() => setNewNoteId(null)}
+                onEditingChange={setEditingNoteId}
             />
 
             <div className={styles.controls}>

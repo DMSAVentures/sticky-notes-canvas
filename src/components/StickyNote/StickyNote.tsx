@@ -1,4 +1,4 @@
-import { useState, useRef, MouseEvent, FocusEvent } from 'react'
+import { useState, useRef, useEffect, MouseEvent, FocusEvent } from 'react'
 import styles from './StickyNote.module.css'
 import { NoteContent } from './NoteContent'
 import { NOTE_COLORS, StickyNoteData } from './types'
@@ -11,8 +11,12 @@ interface StickyNoteProps extends StickyNoteData {
     onDelete: (id: string) => void
     onSelect: (id: string) => void
     zoom?: number
+    shouldAutoFocus?: boolean
+    isEditingExternal?: boolean
     onDragStart?: (id: string) => void
     onDragEnd?: (id: string) => void
+    onAutoFocusComplete?: () => void
+    onEditingChange?: (isEditing: boolean) => void
 }
 
 export function StickyNote({
@@ -28,13 +32,38 @@ export function StickyNote({
     onDelete,
     onSelect,
     zoom = 1,
+    shouldAutoFocus = false,
+    isEditingExternal = false,
     onDragStart,
-    onDragEnd
+    onDragEnd,
+    onAutoFocusComplete,
+    onEditingChange
 }: StickyNoteProps) {
-    const [isEditing, setIsEditing] = useState(false)
+    const [isEditing, setIsEditingState] = useState(shouldAutoFocus)
     const [showColorPicker, setShowColorPicker] = useState(false)
-    const [isFocused, setIsFocused] = useState(false)
     const noteRef = useRef<HTMLDivElement>(null)
+
+    // Wrapper for setIsEditing that also notifies parent
+    const setIsEditing = (editing: boolean) => {
+        setIsEditingState(editing)
+        onEditingChange?.(editing)
+    }
+
+    // Auto-focus and start editing when shouldAutoFocus is true
+    useEffect(() => {
+        if (shouldAutoFocus && !isEditing) {
+            setIsEditing(true)
+            onSelect(id)
+            onAutoFocusComplete?.()
+        }
+    }, [shouldAutoFocus, id, onSelect, onAutoFocusComplete, isEditing])
+
+    // Handle external editing state changes (like clicking on canvas)
+    useEffect(() => {
+        if (!isEditingExternal && isEditing) {
+            setIsEditing(false)
+        }
+    }, [isEditingExternal])
 
     // Use custom hooks for complex logic
     const { isDragging, handleDragStart } = useNoteDrag({
@@ -80,7 +109,40 @@ export function StickyNote({
         }
 
         onSelect(id)
-        handleDragStart(e)
+
+        // Store mouse position for click vs drag detection
+        const startX = e.clientX
+        const startY = e.clientY
+        let isDragIntent = false
+
+        const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
+            // If mouse moved more than 5 pixels, it's a drag
+            const distance = Math.sqrt(
+                Math.pow(moveEvent.clientX - startX, 2) +
+                Math.pow(moveEvent.clientY - startY, 2)
+            )
+            if (distance > 5) {
+                isDragIntent = true
+                // Start dragging
+                handleDragStart(e)
+                // Remove listeners as drag will handle the rest
+                window.removeEventListener('mousemove', handleMouseMove)
+                window.removeEventListener('mouseup', handleMouseUp)
+            }
+        }
+
+        const handleMouseUp = () => {
+            window.removeEventListener('mousemove', handleMouseMove)
+            window.removeEventListener('mouseup', handleMouseUp)
+
+            // If not dragging and clicking on content area, enter edit mode
+            if (!isDragIntent && !isEditing && !target.closest(`.${styles.header}`)) {
+                setIsEditing(true)
+            }
+        }
+
+        window.addEventListener('mousemove', handleMouseMove)
+        window.addEventListener('mouseup', handleMouseUp)
     }
 
     const handleColorChange = (newColor: string) => {
@@ -98,13 +160,6 @@ export function StickyNote({
         if (!target.closest('button')) {
             onSelect(id)
         }
-        setIsFocused(true)
-    }
-
-    const handleBlur = (e: FocusEvent<HTMLDivElement>) => {
-        if (!noteRef.current?.contains(e.relatedTarget as Node)) {
-            setIsFocused(false)
-        }
     }
 
     // Prevent event bubbling for buttons
@@ -116,7 +171,7 @@ export function StickyNote({
     return (
         <article
             ref={noteRef}
-            className={`${styles.stickyNote} ${isFocused ? styles.focused : ''} ${isDragging ? styles.dragging : ''}`}
+            className={`${styles.stickyNote} ${isDragging ? styles.dragging : ''}`}
             style={{
                 left: x,
                 top: y,
@@ -129,7 +184,6 @@ export function StickyNote({
             onMouseDown={handleMouseDown}
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
-            onBlur={handleBlur}
             tabIndex={0}
             role="article"
             aria-label={`Sticky note ${content ? `with content: ${content.substring(0, 50)}` : 'empty'}`}
