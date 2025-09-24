@@ -1,8 +1,9 @@
-import { useState, MouseEvent, RefObject } from 'react'
+import { useState, useMemo, MouseEvent, RefObject } from 'react'
 import { StickyNoteData, NOTE_COLORS } from '../types'
 import { storageService } from '../services/storage.service'
 import { useCanvas } from '../contexts/CanvasContext'
 import { useEditing } from '../contexts/EditingContext'
+import { NOTE_DEFAULT_WIDTH, NOTE_DEFAULT_HEIGHT } from '../constants'
 
 interface UseNoteManagementProps {
     canvasRef: RefObject<HTMLDivElement | null>
@@ -26,8 +27,8 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
                     id: noteId,
                     x,
                     y,
-                    width: 200,
-                    height: 150,
+                    width: NOTE_DEFAULT_WIDTH,
+                    height: NOTE_DEFAULT_HEIGHT,
                     content: '',
                     color: NOTE_COLORS[0], // Default to first color (Pastel Yellow)
                     zIndex: nextZIndex
@@ -52,10 +53,15 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
         setNotes(prev => prev.filter(note => note.id !== id))
     }
 
+    // Calculate max z-index with memoization
+    const maxZIndex = useMemo(() => {
+        if (notes.length === 0) return 0
+        return Math.max(...notes.map(n => n.zIndex))
+    }, [notes])
+
     // Handle note selection (bring to front)
     const handleNoteSelect = (id: string) => {
         const selectedNote = notes.find(note => note.id === id)
-        const maxZIndex = Math.max(...notes.map(n => n.zIndex))
 
         if (selectedNote && selectedNote.zIndex < maxZIndex) {
             setNotes(prev => prev.map(note =>

@@ -1,5 +1,13 @@
 import { useState, useEffect, MouseEvent, WheelEvent, RefObject } from 'react'
 import { ViewState } from '../types'
+import {
+    CANVAS_ZOOM_MIN,
+    CANVAS_ZOOM_MAX,
+    CANVAS_ZOOM_WHEEL_FACTOR,
+    CANVAS_BASE_GRID_SIZE,
+    CANVAS_GRID_OPACITY_MIN,
+    CANVAS_GRID_OPACITY_MAX
+} from '../constants'
 
 interface UseCanvasStateProps {
     canvasRef: RefObject<HTMLDivElement | null>
@@ -40,8 +48,8 @@ export function useCanvasState({ canvasRef, viewState, setViewState }: UseCanvas
     // Handle wheel for zooming
     const handleWheel = (e: WheelEvent) => {
         e.preventDefault()
-        const delta = e.deltaY * -0.001
-        const newZoom = Math.min(Math.max(0.1, viewState.zoom + delta), 5)
+        const delta = e.deltaY * -CANVAS_ZOOM_WHEEL_FACTOR
+        const newZoom = Math.min(Math.max(CANVAS_ZOOM_MIN, viewState.zoom + delta), CANVAS_ZOOM_MAX)
 
         // Zoom towards mouse position
         const rect = canvasRef.current?.getBoundingClientRect()
@@ -76,12 +84,12 @@ export function useCanvasState({ canvasRef, viewState, setViewState }: UseCanvas
     }, [])
 
     // Calculate grid properties
-    const baseGridSize = 20
     const gridStep = Math.pow(2, Math.floor(Math.log2(viewState.zoom)))
-    const gridSize = baseGridSize / gridStep
-    const minGridOpacity = 0.15  // Increased minimum opacity
-    const maxGridOpacity = 0.35  // Increased maximum opacity
-    const gridOpacity = Math.min(maxGridOpacity, Math.max(minGridOpacity, 0.25 * viewState.zoom))
+    const gridSize = CANVAS_BASE_GRID_SIZE / gridStep
+    const gridOpacity = Math.min(
+        CANVAS_GRID_OPACITY_MAX,
+        Math.max(CANVAS_GRID_OPACITY_MIN, 0.25 * viewState.zoom)
+    )
 
     return {
         isPanning,

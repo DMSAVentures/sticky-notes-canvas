@@ -1,4 +1,10 @@
 import { MouseEvent, KeyboardEvent } from 'react'
+import {
+    NOTE_MIN_WIDTH,
+    NOTE_MIN_HEIGHT,
+    KEYBOARD_STEP_NORMAL,
+    KEYBOARD_STEP_FAST
+} from '../constants'
 
 interface UseNoteResizeProps {
     id: string
@@ -22,8 +28,8 @@ export function useNoteResize({ id, width, height, onUpdate }: UseNoteResizeProp
             const deltaY = moveEvent.clientY - startY
 
             onUpdate(id, {
-                width: Math.max(150, startWidth + deltaX),
-                height: Math.max(100, startHeight + deltaY)
+                width: Math.max(NOTE_MIN_WIDTH, startWidth + deltaX),
+                height: Math.max(NOTE_MIN_HEIGHT, startHeight + deltaY)
             })
         }
 
@@ -37,23 +43,23 @@ export function useNoteResize({ id, width, height, onUpdate }: UseNoteResizeProp
     }
 
     const handleResizeKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-        const step = e.shiftKey ? 10 : 1
+        const step = e.shiftKey ? KEYBOARD_STEP_FAST : KEYBOARD_STEP_NORMAL
         switch (e.key) {
             case 'ArrowRight':
                 e.preventDefault()
-                onUpdate(id, { width: Math.max(150, width + step) })
+                onUpdate(id, { width: Math.max(NOTE_MIN_WIDTH, width + step) })
                 break
             case 'ArrowLeft':
                 e.preventDefault()
-                onUpdate(id, { width: Math.max(150, width - step) })
+                onUpdate(id, { width: Math.max(NOTE_MIN_WIDTH, width - step) })
                 break
             case 'ArrowDown':
                 e.preventDefault()
-                onUpdate(id, { height: Math.max(100, height + step) })
+                onUpdate(id, { height: Math.max(NOTE_MIN_HEIGHT, height + step) })
                 break
             case 'ArrowUp':
                 e.preventDefault()
-                onUpdate(id, { height: Math.max(100, height - step) })
+                onUpdate(id, { height: Math.max(NOTE_MIN_HEIGHT, height - step) })
                 break
         }
     }

@@ -1,4 +1,5 @@
 import { KeyboardEvent } from 'react'
+import { KEYBOARD_STEP_NORMAL, KEYBOARD_STEP_FAST } from '../constants'
 
 interface UseNoteKeyboardProps {
     id: string
@@ -31,7 +32,7 @@ export function useNoteKeyboard({
                     onDelete(id)
                 }
             } else if (!isDragging) {
-                const step = e.shiftKey ? 10 : 1
+                const step = e.shiftKey ? KEYBOARD_STEP_FAST : KEYBOARD_STEP_NORMAL
                 switch (e.key) {
                     case 'ArrowLeft':
                         e.preventDefault()

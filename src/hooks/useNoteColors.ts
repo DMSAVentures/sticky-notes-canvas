@@ -1,13 +1,15 @@
-import { useState, useRef, MouseEvent } from 'react'
+import { useState, useRef, MouseEvent, RefObject } from 'react'
 
 interface UseNoteColorsProps {
     id: string
     onUpdate: (id: string, updates: { color: string }) => void
+    noteRef?: RefObject<HTMLDivElement>
 }
 
-export function useNoteColors({ id, onUpdate }: UseNoteColorsProps) {
+export function useNoteColors({ id, onUpdate, noteRef }: UseNoteColorsProps) {
     const [showColorPicker, setShowColorPicker] = useState(false)
-    const noteRef = useRef<HTMLDivElement>(null)
+    const localNoteRef = useRef<HTMLDivElement>(null)
+    const activeRef = noteRef || localNoteRef
 
     const handleColorButtonClick = (e: MouseEvent) => {
         e.stopPropagation()
@@ -20,18 +22,13 @@ export function useNoteColors({ id, onUpdate }: UseNoteColorsProps) {
         e.preventDefault()
         onUpdate(id, { color: newColor })
         setShowColorPicker(false)
-        noteRef.current?.focus()
-    }
-
-    const closeColorPicker = () => {
-        setShowColorPicker(false)
+        activeRef.current?.focus()
     }
 
     return {
         showColorPicker,
-        noteRef,
+        noteRef: activeRef,
         handleColorButtonClick,
-        handleColorSelect,
-        closeColorPicker
+        handleColorSelect
     }
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, MouseEvent } from 'react'
 import { useEditing } from '../contexts/EditingContext'
+import { DRAG_THRESHOLD_PX, TRASH_CAN_SELECTOR } from '../constants'
 
 interface UseNoteInteractionProps {
     id: string
@@ -58,7 +59,7 @@ export function useNoteInteraction({
                 Math.pow(moveEvent.clientY - startY, 2)
             )
 
-            if (distance > 5 && !isDragIntent) {
+            if (distance > DRAG_THRESHOLD_PX && !isDragIntent) {
                 isDragIntent = true
 
                 // Start dragging
@@ -101,7 +102,7 @@ export function useNoteInteraction({
 
         const handleDragEnd = (e: globalThis.MouseEvent) => {
             // Check trash drop
-            const trashCan = document.querySelector('[aria-label="Drop here to delete note"]')
+            const trashCan = document.querySelector(TRASH_CAN_SELECTOR)
             if (trashCan) {
                 const rect = trashCan.getBoundingClientRect()
                 if (e.clientX >= rect.left && e.clientX <= rect.right &&
