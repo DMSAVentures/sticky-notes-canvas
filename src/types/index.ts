@@ -55,14 +55,14 @@ export interface LocalStorageAppData {
 // ============= Constants =============
 
 export const NOTE_COLORS = [
-    '#ffeb3b', // Yellow
-    '#ff9800', // Orange
-    '#4caf50', // Green
-    '#2196f3', // Blue
-    '#e91e63', // Pink
-    '#9c27b0', // Purple
-    '#00bcd4', // Cyan
-    '#ff5722', // Deep Orange
+    '#FFF9C4', // Pastel Yellow
+    '#FFE0B2', // Pastel Peach
+    '#C8E6C9', // Pastel Green
+    '#BBDEFB', // Pastel Blue
+    '#F8BBD0', // Pastel Pink
+    '#E1BEE7', // Pastel Purple
+    '#B2EBF2', // Pastel Cyan
+    '#FFCCBC', // Pastel Coral
 ]
 
 export const STORAGE_KEY = 'sticky-notes-app'

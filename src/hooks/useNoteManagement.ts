@@ -1,5 +1,5 @@
 import { useState, MouseEvent, RefObject } from 'react'
-import { StickyNoteData, ViewState } from '../types'
+import { StickyNoteData, ViewState, NOTE_COLORS } from '../types'
 import { storageService } from '../services/storage.service'
 import { useCanvas } from '../contexts/CanvasContext'
 
@@ -26,7 +26,7 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
                     width: 200,
                     height: 150,
                     content: '',
-                    color: '#ffeb3b',
+                    color: NOTE_COLORS[0], // Default to first color (Pastel Yellow)
                     zIndex: nextZIndex
                 }
 
