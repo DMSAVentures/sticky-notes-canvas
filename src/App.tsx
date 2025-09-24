@@ -1,14 +1,10 @@
 import { useRef, useState, useEffect, MouseEvent, WheelEvent } from 'react'
 import styles from './App.module.css'
-import { StickyNote, StickyNoteData } from './components/StickyNote'
+import { StickyNote } from './components/StickyNote'
 import { TrashCan } from './components/TrashCan'
+import { CanvasSwitcher } from './components/CanvasSwitcher'
 import { storageService } from './services/storage.service'
-
-interface ViewState {
-    x: number
-    y: number
-    zoom: number
-}
+import { StickyNoteData, ViewState, StoredCanvas } from './types'
 
 export function App() {
     const canvasRef = useRef<HTMLDivElement>(null)
@@ -20,6 +16,7 @@ export function App() {
     const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null)
     const [canvasId, setCanvasId] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
+    const [allCanvases, setAllCanvases] = useState<StoredCanvas[]>([])
 
     // Handle mouse down for panning
     const handleMouseDown = (e: MouseEvent) => {
@@ -119,9 +116,73 @@ export function App() {
         }
     }
 
+    // Handle canvas selection
+    const handleSelectCanvas = (selectedCanvasId: string) => {
+        if (selectedCanvasId === canvasId) return
+
+        // Save current canvas state before switching
+        if (canvasId) {
+            storageService.saveCanvas(canvasId, notes, viewState)
+        }
+
+        // Load selected canvas
+        const canvasData = storageService.loadCanvas(selectedCanvasId)
+        if (canvasData) {
+            setCanvasId(selectedCanvasId)
+            setNotes(canvasData.notes)
+            setViewState(canvasData.canvas.viewState)
+            const maxZ = Math.max(0, ...canvasData.notes.map(n => n.zIndex))
+            setNextZIndex(maxZ + 1)
+        }
+    }
+
+    // Handle creating new canvas
+    const handleCreateCanvas = () => {
+        // Save current canvas first
+        if (canvasId) {
+            storageService.saveCanvas(canvasId, notes, viewState)
+        }
+
+        // Create new canvas
+        const newCanvas = storageService.createCanvas(`Canvas ${allCanvases.length + 1}`)
+        storageService.saveCanvas(newCanvas.id, [], { x: 0, y: 0, zoom: 1 })
+
+        // Switch to new canvas
+        setCanvasId(newCanvas.id)
+        setNotes([])
+        setViewState({ x: 0, y: 0, zoom: 1 })
+        setNextZIndex(1)
+
+        // Refresh canvas list
+        setAllCanvases(storageService.getAllCanvases())
+    }
+
+    // Handle renaming canvas
+    const handleRenameCanvas = (renameCanvasId: string, newName: string) => {
+        storageService.renameCanvas(renameCanvasId, newName)
+        setAllCanvases(storageService.getAllCanvases())
+    }
+
+    // Handle deleting canvas
+    const handleDeleteCanvas = (deleteCanvasId: string) => {
+        storageService.deleteCanvas(deleteCanvasId)
+
+        // If deleting current canvas, switch to another
+        if (deleteCanvasId === canvasId) {
+            const remainingCanvases = storageService.getAllCanvases()
+            if (remainingCanvases.length > 0) {
+                handleSelectCanvas(remainingCanvases[0].id)
+            }
+        }
+
+        setAllCanvases(storageService.getAllCanvases())
+    }
+
     // Initialize or load canvas on mount
     useEffect(() => {
         const storage = storageService.load()
+        const canvases = storageService.getAllCanvases()
+        setAllCanvases(canvases)
 
         if (storage && storage.lastActiveCanvasId) {
             // Load last active canvas
@@ -134,10 +195,24 @@ export function App() {
                 setNextZIndex(maxZ + 1)
             }
         } else {
-            // Create new canvas
-            const newCanvas = storageService.createCanvas()
-            setCanvasId(newCanvas.id)
-            storageService.saveCanvas(newCanvas.id, [], { x: 0, y: 0, zoom: 1 })
+            // Create new canvas if none exist
+            if (canvases.length === 0) {
+                const newCanvas = storageService.createCanvas('Canvas 1')
+                setCanvasId(newCanvas.id)
+                storageService.saveCanvas(newCanvas.id, [], { x: 0, y: 0, zoom: 1 })
+                setAllCanvases([newCanvas])
+            } else {
+                // Load first canvas
+                const firstCanvas = canvases[0]
+                const canvasData = storageService.loadCanvas(firstCanvas.id)
+                if (canvasData) {
+                    setCanvasId(firstCanvas.id)
+                    setNotes(canvasData.notes)
+                    setViewState(canvasData.canvas.viewState)
+                    const maxZ = Math.max(0, ...canvasData.notes.map(n => n.zIndex))
+                    setNextZIndex(maxZ + 1)
+                }
+            }
         }
     }, [])
 
@@ -243,6 +318,17 @@ export function App() {
                     />
                 ))}
             </div>
+
+            {/* Canvas Switcher */}
+            <CanvasSwitcher
+                canvases={allCanvases}
+                currentCanvasId={canvasId}
+                onSelectCanvas={handleSelectCanvas}
+                onCreateCanvas={handleCreateCanvas}
+                onRenameCanvas={handleRenameCanvas}
+                onDeleteCanvas={handleDeleteCanvas}
+                getNoteCount={(id) => storageService.getNoteCount(id)}
+            />
 
             {/* Controls overlay */}
             <div className={styles.controls}>

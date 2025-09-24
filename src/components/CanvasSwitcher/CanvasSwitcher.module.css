@@ -1,0 +1,142 @@
+.canvasSwitcher {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10000;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 4px;
+}
+
+.title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.addButton {
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.addButton:hover {
+    background: #45a049;
+}
+
+.canvasList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.canvasItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.canvasItem:hover {
+    background: #f5f5f5;
+}
+
+.canvasItem.active {
+    background: #e3f2fd;
+    border-left: 3px solid #2196f3;
+    padding-left: 5px;
+}
+
+.canvasName {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid transparent;
+    padding: 2px 4px;
+    border-radius: 2px;
+    background: transparent;
+    outline: none;
+}
+
+.canvasItem.editing .canvasName {
+    border: 1px solid #2196f3;
+    background: white;
+}
+
+.noteCount {
+    font-size: 11px;
+    color: #666;
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.canvasActions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.canvasItem:hover .canvasActions {
+    opacity: 1;
+}
+
+.actionButton {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 2px;
+    color: #666;
+    font-size: 12px;
+    transition: background 0.2s;
+}
+
+.actionButton:hover {
+    background: #e0e0e0;
+}
+
+.deleteButton:hover {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.shortcutHint {
+    font-size: 10px;
+    color: #999;
+    padding: 4px 8px;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 4px;
+}

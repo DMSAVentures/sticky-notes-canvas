@@ -1,8 +1,11 @@
-import { StickyNoteData } from '../components/StickyNote'
-import { StorageData, StoredCanvas, StoredNote, StoredNotePosition } from './storage.types'
-
-const STORAGE_KEY = 'sticky-notes-app'
-const STORAGE_VERSION = '1.0.0'
+import {
+    StickyNoteData,
+    LocalStorageAppData,
+    StoredCanvas,
+    ViewState,
+    STORAGE_KEY,
+    STORAGE_VERSION
+} from '../types'
 
 class StorageService {
     // Generate a new UUID using native crypto API
@@ -11,16 +14,16 @@ class StorageService {
     }
 
     // Load all data from localStorage
-    load(): StorageData | null {
+    load(): LocalStorageAppData | null {
         try {
             const data = localStorage.getItem(STORAGE_KEY)
             if (!data) return null
 
-            const parsed = JSON.parse(data) as StorageData
+            const parsed = JSON.parse(data) as LocalStorageAppData
 
             // Check version compatibility
             if (parsed.version !== STORAGE_VERSION) {
-                console.warn('Storage version mismatch, might need migration')
+                console.warn('Storage version mismatch')
             }
 
             return parsed
@@ -31,7 +34,7 @@ class StorageService {
     }
 
     // Save all data to localStorage
-    save(data: StorageData): boolean {
+    save(data: LocalStorageAppData): boolean {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
             return true
@@ -42,7 +45,7 @@ class StorageService {
     }
 
     // Initialize empty storage
-    initializeStorage(): StorageData {
+    initializeStorage(): LocalStorageAppData {
         return {
             version: STORAGE_VERSION,
             canvases: {},
@@ -67,13 +70,13 @@ class StorageService {
     saveCanvas(
         canvasId: string,
         notes: StickyNoteData[],
-        viewState: { x: number; y: number; zoom: number },
+        viewState: ViewState,
         name?: string
     ): boolean {
-        const storage = this.load() || this.initializeStorage()
+        const appData = this.load() || this.initializeStorage()
 
         // Update or create canvas
-        const existingCanvas = storage.canvases[canvasId]
+        const existingCanvas = appData.canvases[canvasId]
         const canvas: StoredCanvas = {
             id: canvasId,
             name: name || existingCanvas?.name || 'Untitled Canvas',
@@ -89,24 +92,24 @@ class StorageService {
         }
 
         // Save canvas
-        storage.canvases[canvasId] = canvas
+        appData.canvases[canvasId] = canvas
 
         // Save/update notes
         notes.forEach(note => {
-            storage.notes[note.id] = {
+            appData.notes[note.id] = {
                 id: note.id,
                 content: note.content,
                 color: note.color,
                 width: note.width,
                 height: note.height,
-                createdAt: storage.notes[note.id]?.createdAt || Date.now(),
+                createdAt: appData.notes[note.id]?.createdAt || Date.now(),
                 updatedAt: Date.now()
             }
         })
 
-        storage.lastActiveCanvasId = canvasId
+        appData.lastActiveCanvasId = canvasId
 
-        return this.save(storage)
+        return this.save(appData)
     }
 
     // Load canvas state
@@ -150,6 +153,17 @@ class StorageService {
         return Object.values(storage.canvases).sort((a, b) => b.updatedAt - a.updatedAt)
     }
 
+    // Rename canvas
+    renameCanvas(canvasId: string, newName: string): boolean {
+        const storage = this.load()
+        if (!storage || !storage.canvases[canvasId]) return false
+
+        storage.canvases[canvasId].name = newName
+        storage.canvases[canvasId].updatedAt = Date.now()
+
+        return this.save(storage)
+    }
+
     // Delete canvas
     deleteCanvas(canvasId: string): boolean {
         const storage = this.load()
@@ -188,15 +202,11 @@ class StorageService {
         return this.save(storage)
     }
 
-    // Clear all storage
-    clearAll(): boolean {
-        try {
-            localStorage.removeItem(STORAGE_KEY)
-            return true
-        } catch (error) {
-            console.error('Failed to clear storage:', error)
-            return false
-        }
+    // Get note count for a canvas
+    getNoteCount(canvasId: string): number {
+        const storage = this.load()
+        if (!storage || !storage.canvases[canvasId]) return 0
+        return storage.canvases[canvasId].notePositions.length
     }
 }
 

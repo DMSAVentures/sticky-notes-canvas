@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect, MouseEvent, KeyboardEvent, FocusEvent } from 'react'
 import styles from './StickyNote.module.css'
 import { NoteContent } from './NoteContent'
-import { StickyNoteProps, NOTE_COLORS } from './types'
+import { NOTE_COLORS, StickyNoteData} from './types'
+
+interface StickyNoteProps extends StickyNoteData {
+    onUpdate: (id: string, updates: Partial<StickyNoteData>) => void
+    onDelete: (id: string) => void
+    onSelect: (id: string) => void
+    zoom?: number
+    onDragStart?: (id: string) => void
+    onDragEnd?: (id: string) => void
+}
 
 export function StickyNote({
     id,
