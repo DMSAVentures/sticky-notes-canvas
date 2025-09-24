@@ -3,10 +3,9 @@ import styles from './TrashCan.module.css'
 
 interface TrashCanProps {
     isActive?: boolean
-    onDrop?: () => void
 }
 
-export function TrashCan({ isActive = false, onDrop }: TrashCanProps) {
+export function TrashCan({ isActive = false }: TrashCanProps) {
     const [isHovered, setIsHovered] = useState(false)
     const trashRef = useRef<HTMLDivElement>(null)
 

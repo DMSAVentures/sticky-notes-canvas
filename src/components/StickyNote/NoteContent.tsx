@@ -5,7 +5,6 @@ interface NoteContentProps {
     content: string
     isEditing: boolean
     onContentChange: (content: string) => void
-    onEditStart?: () => void
     onEditEnd: () => void
     onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void
 }
@@ -14,7 +13,6 @@ export function NoteContent({
     content,
     isEditing,
     onContentChange,
-    onEditStart,
     onEditEnd,
     onKeyDown
 }: NoteContentProps) {
@@ -58,6 +56,10 @@ export function NoteContent({
         }
     }
 
+    const stopPropagation = (e: React.MouseEvent) => {
+        e.stopPropagation()
+    }
+
     return (
         <div
             className={styles.content}
@@ -72,8 +74,8 @@ export function NoteContent({
                     onChange={handleContentChange}
                     onBlur={handleContentBlur}
                     onKeyDown={handleTextareaKeyDown}
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={stopPropagation}
+                    onMouseDown={stopPropagation}
                     aria-label="Note content"
                     placeholder="Type your note here..."
                 />

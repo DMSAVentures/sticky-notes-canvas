@@ -5,7 +5,7 @@ import { useCanvas } from '../contexts/CanvasContext'
 import { useEditing } from '../contexts/EditingContext'
 
 interface UseNoteManagementProps {
-    canvasRef: RefObject<HTMLDivElement>
+    canvasRef: RefObject<HTMLDivElement | null>
 }
 
 export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
@@ -75,14 +75,6 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
         setDraggingNoteId(null)
     }
 
-    // Handle drop on trash
-    const handleTrashDrop = () => {
-        if (draggingNoteId) {
-            handleNoteDelete(draggingNoteId)
-            setDraggingNoteId(null)
-        }
-    }
-
     return {
         notes,
         draggingNoteId,
@@ -91,7 +83,6 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
         handleNoteDelete,
         handleNoteSelect,
         handleNoteDragStart,
-        handleNoteDragEnd,
-        handleTrashDrop
+        handleNoteDragEnd
     }
 }

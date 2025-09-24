@@ -227,6 +227,60 @@ export function StickyNote({
         e.preventDefault()
     }
 
+    // Color picker handlers
+    const handleColorButtonClick = (e: MouseEvent) => {
+        stopPropagation(e)
+        setShowColorPicker(!showColorPicker)
+    }
+
+    const handleColorSelect = (newColor: string) => (e: MouseEvent) => {
+        stopPropagation(e)
+        onUpdate(id, { color: newColor })
+        setShowColorPicker(false)
+        noteRef.current?.focus()
+    }
+
+    // Delete button handler
+    const handleDeleteClick = (e: MouseEvent) => {
+        stopPropagation(e)
+        if (confirm('Delete this note?')) {
+            onDelete(id)
+        }
+    }
+
+    // Content handlers
+    const handleContentChange = (newContent: string) => {
+        onUpdate(id, { content: newContent })
+    }
+
+    const handleEditEnd = () => {
+        stopEditingSpecific(id)
+        noteRef.current?.focus()
+    }
+
+    // Resize keyboard handler
+    const handleResizeKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+        const step = e.shiftKey ? 10 : 1
+        switch (e.key) {
+            case 'ArrowRight':
+                e.preventDefault()
+                onUpdate(id, { width: Math.max(150, width + step) })
+                break
+            case 'ArrowLeft':
+                e.preventDefault()
+                onUpdate(id, { width: Math.max(150, width - step) })
+                break
+            case 'ArrowDown':
+                e.preventDefault()
+                onUpdate(id, { height: Math.max(100, height + step) })
+                break
+            case 'ArrowUp':
+                e.preventDefault()
+                onUpdate(id, { height: Math.max(100, height - step) })
+                break
+        }
+    }
+
     return (
         <article
             ref={noteRef}
@@ -255,10 +309,7 @@ export function StickyNote({
             <header className={styles.header} role="toolbar" aria-label="Note controls">
                 <button
                     className={styles.colorButton}
-                    onClick={(e) => {
-                        stopPropagation(e)
-                        setShowColorPicker(!showColorPicker)
-                    }}
+                    onClick={handleColorButtonClick}
                     onMouseDown={stopPropagation}
                     onFocus={stopPropagation}
                     style={{ backgroundColor: color }}
@@ -268,12 +319,7 @@ export function StickyNote({
                 />
                 <button
                     className={styles.deleteButton}
-                    onClick={(e) => {
-                        stopPropagation(e)
-                        if (confirm('Delete this note?')) {
-                            onDelete(id)
-                        }
-                    }}
+                    onClick={handleDeleteClick}
                     onMouseDown={stopPropagation}
                     onFocus={stopPropagation}
                     aria-label="Delete note"
@@ -289,12 +335,7 @@ export function StickyNote({
                             key={noteColor}
                             className={styles.colorOption}
                             style={{ backgroundColor: noteColor }}
-                            onClick={(e) => {
-                                stopPropagation(e)
-                                onUpdate(id, { color: noteColor })
-                                setShowColorPicker(false)
-                                noteRef.current?.focus()
-                            }}
+                            onClick={handleColorSelect(noteColor)}
                             onMouseDown={stopPropagation}
                             role="menuitem"
                             aria-label={`Color ${index + 1}`}
@@ -307,37 +348,18 @@ export function StickyNote({
             <NoteContent
                 content={content}
                 isEditing={isCurrentlyEditing || shouldFocusThis}
-                onContentChange={(newContent) => onUpdate(id, { content: newContent })}
-                onEditStart={() => startEditing(id)}
-                onEditEnd={() => {
-                    stopEditingSpecific(id)
-                    noteRef.current?.focus()
-                }}
+                onContentChange={handleContentChange}
+                onEditEnd={handleEditEnd}
             />
 
             <div
                 className={styles.resizeHandle}
                 onMouseDown={handleResizeStart}
+                onKeyDown={handleResizeKeyDown}
                 role="separator"
                 aria-label="Resize note"
                 aria-orientation="vertical"
                 tabIndex={0}
-                onKeyDown={(e) => {
-                    const step = e.shiftKey ? 10 : 1
-                    if (e.key === 'ArrowRight') {
-                        e.preventDefault()
-                        onUpdate(id, { width: Math.max(150, width + step) })
-                    } else if (e.key === 'ArrowLeft') {
-                        e.preventDefault()
-                        onUpdate(id, { width: Math.max(150, width - step) })
-                    } else if (e.key === 'ArrowDown') {
-                        e.preventDefault()
-                        onUpdate(id, { height: Math.max(100, height + step) })
-                    } else if (e.key === 'ArrowUp') {
-                        e.preventDefault()
-                        onUpdate(id, { height: Math.max(100, height - step) })
-                    }
-                }}
             />
         </article>
     )

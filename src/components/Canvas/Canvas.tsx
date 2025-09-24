@@ -31,8 +31,7 @@ export function Canvas() {
         handleNoteDelete,
         handleNoteSelect,
         handleNoteDragStart,
-        handleNoteDragEnd,
-        handleTrashDrop
+        handleNoteDragEnd
     } = useNoteManagement({ canvasRef })
 
     // Handle clicking on canvas to exit edit mode
@@ -89,7 +88,6 @@ export function Canvas() {
 
             <TrashCan
                 isActive={draggingNoteId !== null}
-                onDrop={handleTrashDrop}
             />
         </div>
     )

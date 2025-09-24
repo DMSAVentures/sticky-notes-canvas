@@ -64,6 +64,21 @@ export function CanvasSwitcher({
         }
     }
 
+    const handleCanvasClick = (canvas: StoredCanvas) => {
+        if (editingId !== canvas.id) {
+            onSelectCanvas(canvas.id)
+        }
+    }
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setEditValue(e.target.value)
+    }
+
+    const handleRenameClick = (e: React.MouseEvent, canvas: StoredCanvas) => {
+        e.stopPropagation()
+        handleRename(canvas)
+    }
+
     return (
         <div className={styles.canvasSwitcher}>
             <div className={styles.header}>
@@ -84,11 +99,7 @@ export function CanvasSwitcher({
                         className={`${styles.canvasItem} ${
                             canvas.id === currentCanvasId ? styles.active : ''
                         } ${editingId === canvas.id ? styles.editing : ''}`}
-                        onClick={() => {
-                            if (editingId !== canvas.id) {
-                                onSelectCanvas(canvas.id)
-                            }
-                        }}
+                        onClick={() => handleCanvasClick(canvas)}
                         title={index < 9 ? `⌘${index + 1}` : undefined}
                     >
                         {editingId === canvas.id ? (
@@ -96,7 +107,7 @@ export function CanvasSwitcher({
                                 ref={inputRef}
                                 className={styles.canvasName}
                                 value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
+                                onChange={handleInputChange}
                                 onBlur={() => handleRenameSubmit(canvas.id)}
                                 onKeyDown={(e) => handleKeyDown(e, canvas.id)}
                                 onClick={(e) => e.stopPropagation()}
@@ -112,10 +123,7 @@ export function CanvasSwitcher({
                         <div className={styles.canvasActions}>
                             <button
                                 className={styles.actionButton}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleRename(canvas)
-                                }}
+                                onClick={(e) => handleRenameClick(e, canvas)}
                                 title="Rename canvas"
                             >
                                 ✏️

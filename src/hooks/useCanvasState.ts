@@ -2,7 +2,7 @@ import { useState, useEffect, MouseEvent, WheelEvent, RefObject } from 'react'
 import { ViewState } from '../types'
 
 interface UseCanvasStateProps {
-    canvasRef: RefObject<HTMLDivElement>
+    canvasRef: RefObject<HTMLDivElement | null>
     viewState: ViewState
     setViewState: (viewState: ViewState | ((prev: ViewState) => ViewState)) => void
 }
