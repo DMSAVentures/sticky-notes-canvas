@@ -79,9 +79,9 @@ export function useCanvasState({ canvasRef, viewState, setViewState }: UseCanvas
     const baseGridSize = 20
     const gridStep = Math.pow(2, Math.floor(Math.log2(viewState.zoom)))
     const gridSize = baseGridSize / gridStep
-    const minGridOpacity = 0.05
-    const maxGridOpacity = 0.15
-    const gridOpacity = Math.min(maxGridOpacity, Math.max(minGridOpacity, 0.1 * viewState.zoom))
+    const minGridOpacity = 0.15  // Increased minimum opacity
+    const maxGridOpacity = 0.35  // Increased maximum opacity
+    const gridOpacity = Math.min(maxGridOpacity, Math.max(minGridOpacity, 0.25 * viewState.zoom))
 
     return {
         isPanning,
