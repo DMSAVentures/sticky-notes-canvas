@@ -5,7 +5,7 @@ interface NoteContentProps {
     content: string
     isEditing: boolean
     onContentChange: (content: string) => void
-    onEditStart: () => void
+    onEditStart?: () => void
     onEditEnd: () => void
     onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void
 }

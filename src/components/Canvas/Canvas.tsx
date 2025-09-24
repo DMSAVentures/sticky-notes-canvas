@@ -4,12 +4,14 @@ import { CanvasGrid } from './CanvasGrid'
 import { CanvasViewport } from './CanvasViewport'
 import { TrashCan } from '../TrashCan'
 import { useCanvas } from '../../contexts/CanvasContext'
+import { useEditing } from '../../contexts/EditingContext'
 import { useCanvasState } from '../../hooks/useCanvasState'
 import { useNoteManagement } from '../../hooks/useNoteManagement'
 
 export function Canvas() {
     const canvasRef = useRef<HTMLDivElement>(null)
     const { viewState, setViewState, isSaving } = useCanvas()
+    const { stopEditing } = useEditing()
 
     const {
         handleMouseDown,
@@ -24,10 +26,6 @@ export function Canvas() {
     const {
         notes,
         draggingNoteId,
-        newNoteId,
-        setNewNoteId,
-        editingNoteId,
-        setEditingNoteId,
         handleDoubleClick,
         handleNoteUpdate,
         handleNoteDelete,
@@ -41,7 +39,7 @@ export function Canvas() {
     const handleCanvasClick = (e: React.MouseEvent) => {
         // Only if clicking directly on canvas (not on notes or controls)
         if (e.target === e.currentTarget) {
-            setEditingNoteId(null)
+            stopEditing()
         }
     }
 
@@ -65,15 +63,11 @@ export function Canvas() {
             <CanvasViewport
                 notes={notes}
                 viewState={viewState}
-                newNoteId={newNoteId}
-                editingNoteId={editingNoteId}
                 onNoteUpdate={handleNoteUpdate}
                 onNoteDelete={handleNoteDelete}
                 onNoteSelect={handleNoteSelect}
                 onNoteDragStart={handleNoteDragStart}
                 onNoteDragEnd={handleNoteDragEnd}
-                onNewNoteRendered={() => setNewNoteId(null)}
-                onEditingChange={setEditingNoteId}
             />
 
             <div className={styles.controls}>

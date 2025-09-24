@@ -2,6 +2,7 @@ import styles from './App.module.css'
 import { Canvas } from './components/Canvas'
 import { CanvasSwitcher } from './components/CanvasSwitcher'
 import { CanvasProvider, useCanvas } from './contexts/CanvasContext'
+import { EditingProvider } from './contexts/EditingContext'
 
 function AppContent() {
     const {
@@ -33,7 +34,9 @@ function AppContent() {
 export function App() {
     return (
         <CanvasProvider>
-            <AppContent />
+            <EditingProvider>
+                <AppContent />
+            </EditingProvider>
         </CanvasProvider>
     )
 }

@@ -1,7 +1,8 @@
 import { useState, MouseEvent, RefObject } from 'react'
-import { StickyNoteData, ViewState, NOTE_COLORS } from '../types'
+import { StickyNoteData, NOTE_COLORS } from '../types'
 import { storageService } from '../services/storage.service'
 import { useCanvas } from '../contexts/CanvasContext'
+import { useEditing } from '../contexts/EditingContext'
 
 interface UseNoteManagementProps {
     canvasRef: RefObject<HTMLDivElement>
@@ -9,9 +10,8 @@ interface UseNoteManagementProps {
 
 export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
     const { notes, setNotes, viewState, nextZIndex, setNextZIndex } = useCanvas()
+    const { setAutoFocus } = useEditing()
     const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null)
-    const [newNoteId, setNewNoteId] = useState<string | null>(null)
-    const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
 
     // Handle double click to create new note
     const handleDoubleClick = (e: MouseEvent) => {
@@ -35,7 +35,7 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
 
                 setNotes(prev => [...prev, newNote])
                 setNextZIndex(prev => prev + 1)
-                setNewNoteId(noteId) // Track the new note to auto-focus it
+                setAutoFocus(noteId) // Use centralized editing context
             }
         }
     }
@@ -86,10 +86,6 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
     return {
         notes,
         draggingNoteId,
-        newNoteId,
-        setNewNoteId,
-        editingNoteId,
-        setEditingNoteId,
         handleDoubleClick,
         handleNoteUpdate,
         handleNoteDelete,
