@@ -1,8 +1,12 @@
-import { useState, useEffect, useRef, MouseEvent, FocusEvent, KeyboardEvent } from 'react'
+import { useEffect, FocusEvent, MouseEvent } from 'react'
 import styles from './StickyNote.module.css'
 import { NoteContent } from './NoteContent'
 import { NOTE_COLORS, StickyNoteData } from './types'
 import { useEditing } from '../../contexts/EditingContext'
+import { useNoteInteraction } from '../../hooks/useNoteInteraction'
+import { useNoteResize } from '../../hooks/useNoteResize'
+import { useNoteKeyboard } from '../../hooks/useNoteKeyboard'
+import { useNoteColors } from '../../hooks/useNoteColors'
 
 interface StickyNoteProps extends StickyNoteData {
     onUpdate: (id: string, updates: Partial<StickyNoteData>) => void
@@ -29,7 +33,6 @@ export function StickyNote({
     onDragStart,
     onDragEnd
 }: StickyNoteProps) {
-    const noteRef = useRef<HTMLDivElement>(null)
     const {
         isEditing,
         shouldAutoFocus,
@@ -41,11 +44,32 @@ export function StickyNote({
     const isCurrentlyEditing = isEditing(id)
     const shouldFocusThis = shouldAutoFocus(id)
 
-    // States for UI interactions
-    const [showColorPicker, setShowColorPicker] = useState(false)
-    const [isDragging, setIsDragging] = useState(false)
-    const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-    const [originalPosition, setOriginalPosition] = useState({ x: 0, y: 0 })
+    // Use custom hooks for organized logic
+    const { isDragging, handleMouseDown } = useNoteInteraction({
+        id, x, y, zoom, onUpdate, onDelete, onSelect, onDragStart, onDragEnd
+    })
+
+    const { handleResizeStart, handleResizeKeyDown } = useNoteResize({
+        id, width, height, onUpdate
+    })
+
+    const { handleKeyDown } = useNoteKeyboard({
+        id, x, y,
+        isEditing: isCurrentlyEditing,
+        isDragging,
+        onUpdate,
+        onDelete,
+        onStartEdit: () => startEditing(id)
+    })
+
+    const {
+        showColorPicker,
+        noteRef,
+        handleColorButtonClick,
+        handleColorSelect
+    } = useNoteColors({
+        id, onUpdate
+    })
 
     // Auto-focus handling
     useEffect(() => {
@@ -55,166 +79,7 @@ export function StickyNote({
         }
     }, [shouldFocusThis, id, onSelect, clearAutoFocus])
 
-    // Unified mouse handler for click/drag detection
-    const handleMouseDown = (e: MouseEvent) => {
-        const target = e.target as HTMLElement
-
-        // Skip if clicking on controls
-        if (target.classList.contains(styles.resizeHandle) ||
-            target.closest(`.${styles.colorPicker}`)) {
-            return
-        }
-
-        onSelect(id)
-
-        // Click vs drag detection
-        const startX = e.clientX
-        const startY = e.clientY
-        let isDragIntent = false
-
-        const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
-            const distance = Math.sqrt(
-                Math.pow(moveEvent.clientX - startX, 2) +
-                Math.pow(moveEvent.clientY - startY, 2)
-            )
-
-            if (distance > 5) {
-                isDragIntent = true
-                // Start dragging
-                setIsDragging(true)
-                setOriginalPosition({ x, y })
-                setDragStart({
-                    x: e.clientX - x * zoom,
-                    y: e.clientY - y * zoom
-                })
-                onDragStart?.(id)
-
-                window.removeEventListener('mousemove', handleMouseMove)
-                window.removeEventListener('mouseup', handleMouseUp)
-            }
-        }
-
-        const handleMouseUp = () => {
-            window.removeEventListener('mousemove', handleMouseMove)
-            window.removeEventListener('mouseup', handleMouseUp)
-
-            // Click detected - enter edit mode
-            if (!isDragIntent && !isCurrentlyEditing && !target.closest(`.${styles.header}`)) {
-                startEditing(id)
-            }
-        }
-
-        window.addEventListener('mousemove', handleMouseMove)
-        window.addEventListener('mouseup', handleMouseUp)
-    }
-
-    // Drag handling
-    useEffect(() => {
-        if (!isDragging) return
-
-        const handleDragMove = (e: globalThis.MouseEvent) => {
-            const newX = (e.clientX - dragStart.x) / zoom
-            const newY = (e.clientY - dragStart.y) / zoom
-            onUpdate(id, { x: newX, y: newY })
-        }
-
-        const handleDragEnd = (e: globalThis.MouseEvent) => {
-            // Check trash drop
-            const trashCan = document.querySelector('[aria-label="Drop here to delete note"]')
-            if (trashCan) {
-                const rect = trashCan.getBoundingClientRect()
-                if (e.clientX >= rect.left && e.clientX <= rect.right &&
-                    e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                    onDelete(id)
-                }
-            }
-
-            setIsDragging(false)
-            onDragEnd?.(id)
-        }
-
-        const handleEscape = (e: globalThis.KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                onUpdate(id, { x: originalPosition.x, y: originalPosition.y })
-                setIsDragging(false)
-                onDragEnd?.(id)
-            }
-        }
-
-        window.addEventListener('mousemove', handleDragMove)
-        window.addEventListener('mouseup', handleDragEnd)
-        window.addEventListener('keydown', handleEscape)
-
-        return () => {
-            window.removeEventListener('mousemove', handleDragMove)
-            window.removeEventListener('mouseup', handleDragEnd)
-            window.removeEventListener('keydown', handleEscape)
-        }
-    }, [isDragging, dragStart, originalPosition, id, zoom, onUpdate, onDelete, onDragEnd])
-
-    // Resize handling
-    const handleResizeStart = (e: MouseEvent) => {
-        e.stopPropagation()
-        e.preventDefault()
-
-        const startX = e.clientX
-        const startY = e.clientY
-        const startWidth = width
-        const startHeight = height
-
-        const handleResizeMove = (moveEvent: globalThis.MouseEvent) => {
-            const deltaX = moveEvent.clientX - startX
-            const deltaY = moveEvent.clientY - startY
-
-            onUpdate(id, {
-                width: Math.max(150, startWidth + deltaX),
-                height: Math.max(100, startHeight + deltaY)
-            })
-        }
-
-        const handleResizeEnd = () => {
-            window.removeEventListener('mousemove', handleResizeMove)
-            window.removeEventListener('mouseup', handleResizeEnd)
-        }
-
-        window.addEventListener('mousemove', handleResizeMove)
-        window.addEventListener('mouseup', handleResizeEnd)
-    }
-
-    // Keyboard navigation
-    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-        if (!isCurrentlyEditing) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                startEditing(id)
-            } else if (e.key === 'Delete') {
-                if (confirm('Delete this note?')) {
-                    onDelete(id)
-                }
-            } else if (!isDragging) {
-                const step = e.shiftKey ? 10 : 1
-                switch (e.key) {
-                    case 'ArrowLeft':
-                        e.preventDefault()
-                        onUpdate(id, { x: x - step })
-                        break
-                    case 'ArrowRight':
-                        e.preventDefault()
-                        onUpdate(id, { x: x + step })
-                        break
-                    case 'ArrowUp':
-                        e.preventDefault()
-                        onUpdate(id, { y: y - step })
-                        break
-                    case 'ArrowDown':
-                        e.preventDefault()
-                        onUpdate(id, { y: y + step })
-                        break
-                }
-            }
-        }
-    }
-
+    // Focus handler
     const handleFocus = (e: FocusEvent<HTMLDivElement>) => {
         const target = e.target as HTMLElement
         if (!target.closest('button')) {
@@ -222,27 +87,10 @@ export function StickyNote({
         }
     }
 
-    const stopPropagation = (e: MouseEvent | FocusEvent) => {
-        e.stopPropagation()
-        e.preventDefault()
-    }
-
-    // Color picker handlers
-    const handleColorButtonClick = (e: MouseEvent) => {
-        stopPropagation(e)
-        setShowColorPicker(!showColorPicker)
-    }
-
-    const handleColorSelect = (newColor: string) => (e: MouseEvent) => {
-        stopPropagation(e)
-        onUpdate(id, { color: newColor })
-        setShowColorPicker(false)
-        noteRef.current?.focus()
-    }
-
     // Delete button handler
     const handleDeleteClick = (e: MouseEvent) => {
-        stopPropagation(e)
+        e.stopPropagation()
+        e.preventDefault()
         if (confirm('Delete this note?')) {
             onDelete(id)
         }
@@ -258,27 +106,10 @@ export function StickyNote({
         noteRef.current?.focus()
     }
 
-    // Resize keyboard handler
-    const handleResizeKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-        const step = e.shiftKey ? 10 : 1
-        switch (e.key) {
-            case 'ArrowRight':
-                e.preventDefault()
-                onUpdate(id, { width: Math.max(150, width + step) })
-                break
-            case 'ArrowLeft':
-                e.preventDefault()
-                onUpdate(id, { width: Math.max(150, width - step) })
-                break
-            case 'ArrowDown':
-                e.preventDefault()
-                onUpdate(id, { height: Math.max(100, height + step) })
-                break
-            case 'ArrowUp':
-                e.preventDefault()
-                onUpdate(id, { height: Math.max(100, height - step) })
-                break
-        }
+    // Stop event propagation helper
+    const stopPropagation = (e: MouseEvent | FocusEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
     }
 
     return (
