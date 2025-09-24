@@ -1,0 +1,82 @@
+.canvas {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+    background: white;
+}
+
+.canvas:active {
+    cursor: grabbing;
+}
+
+.gridSvg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.viewport {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+
+.viewport > * {
+    pointer-events: auto;
+}
+
+.controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.controls button {
+    padding: 8px 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.controls button:hover {
+    background: #45a049;
+}
+
+.zoomLevel {
+    font-size: 14px;
+    color: #666;
+}
+
+.saveIndicator {
+    font-size: 12px;
+    color: #999;
+}
+
+.helpText {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    color: #999;
+    pointer-events: none;
+    user-select: none;
+}
