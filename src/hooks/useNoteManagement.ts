@@ -14,7 +14,6 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
     const { setAutoFocus } = useEditing()
     const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null)
 
-    // Handle double click to create new note
     const handleDoubleClick = (e: MouseEvent) => {
         if (e.target === e.currentTarget) {
             const rect = canvasRef.current?.getBoundingClientRect()
@@ -30,7 +29,7 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
                     width: NOTE_DEFAULT_WIDTH,
                     height: NOTE_DEFAULT_HEIGHT,
                     content: '',
-                    color: NOTE_COLORS[0], // Default to first color (Pastel Yellow)
+                    color: NOTE_COLORS[0],
                     zIndex: nextZIndex
                 }
 
@@ -41,25 +40,22 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
         }
     }
 
-    // Handle note updates
     const handleNoteUpdate = (id: string, updates: Partial<StickyNoteData>) => {
         setNotes(prev => prev.map(note =>
             note.id === id ? { ...note, ...updates } : note
         ))
     }
 
-    // Handle note deletion
     const handleNoteDelete = (id: string) => {
         setNotes(prev => prev.filter(note => note.id !== id))
     }
 
-    // Calculate max z-index with memoization
+    // Memoized to avoid recalculating on every render
     const maxZIndex = useMemo(() => {
         if (notes.length === 0) return 0
         return Math.max(...notes.map(n => n.zIndex))
     }, [notes])
 
-    // Handle note selection (bring to front)
     const handleNoteSelect = (id: string) => {
         const selectedNote = notes.find(note => note.id === id)
 
@@ -71,12 +67,10 @@ export function useNoteManagement({ canvasRef }: UseNoteManagementProps) {
         }
     }
 
-    // Handle drag start
     const handleNoteDragStart = (id: string) => {
         setDraggingNoteId(id)
     }
 
-    // Handle drag end
     const handleNoteDragEnd = () => {
         setDraggingNoteId(null)
     }

@@ -9,7 +9,7 @@ export function TrashCan({ isActive = false }: TrashCanProps) {
     const [isHovered, setIsHovered] = useState(false)
     const trashRef = useRef<HTMLDivElement>(null)
 
-    // Add global mouse move listener when dragging
+    // Track hover state during drag operations
     useEffect(() => {
         if (!isActive) return
 

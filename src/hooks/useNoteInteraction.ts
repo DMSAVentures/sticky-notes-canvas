@@ -32,11 +32,10 @@ export function useNoteInteraction({
 
     const isCurrentlyEditing = isEditing(id)
 
-    // Handle mouse down for both click and drag
     const handleMouseDown = (e: MouseEvent) => {
         const target = e.target as HTMLElement
 
-        // Skip if clicking on controls
+        // Identify UI controls to skip drag/click behavior
         const isResizeHandle = target.getAttribute('role') === 'separator'
         const isColorPicker = target.closest('[role="menu"]') ||
                              target.getAttribute('aria-label')?.includes('color')
@@ -48,7 +47,7 @@ export function useNoteInteraction({
 
         onSelect(id)
 
-        // Setup click vs drag detection
+        // Differentiate click from drag using movement threshold
         const startX = e.clientX
         const startY = e.clientY
         let isDragIntent = false
@@ -62,7 +61,6 @@ export function useNoteInteraction({
             if (distance > DRAG_THRESHOLD_PX && !isDragIntent) {
                 isDragIntent = true
 
-                // Start dragging
                 setIsDragging(true)
                 setOriginalPosition({ x, y })
                 setDragStart({
@@ -80,7 +78,6 @@ export function useNoteInteraction({
             window.removeEventListener('mousemove', handleMouseMove)
             window.removeEventListener('mouseup', handleMouseUp)
 
-            // If it wasn't a drag and not editing, start editing
             if (!isDragIntent && !isCurrentlyEditing && !isHeader) {
                 startEditing(id)
             }
@@ -90,7 +87,6 @@ export function useNoteInteraction({
         window.addEventListener('mouseup', handleMouseUp)
     }
 
-    // Handle drag movement
     useEffect(() => {
         if (!isDragging) return
 
@@ -101,7 +97,7 @@ export function useNoteInteraction({
         }
 
         const handleDragEnd = (e: globalThis.MouseEvent) => {
-            // Check trash drop
+            // Check if dropped on trash area for deletion
             const trashCan = document.querySelector(TRASH_CAN_SELECTOR)
             if (trashCan) {
                 const rect = trashCan.getBoundingClientRect()

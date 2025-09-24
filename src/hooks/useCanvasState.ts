@@ -19,9 +19,8 @@ export function useCanvasState({ canvasRef, viewState, setViewState }: UseCanvas
     const [isPanning, setIsPanning] = useState(false)
     const [startPan, setStartPan] = useState({ x: 0, y: 0 })
 
-    // Handle mouse down for panning
     const handleMouseDown = (e: MouseEvent) => {
-        // Only pan if clicking on canvas, not on notes
+        // Only pan if clicking on canvas background, not on notes
         if (e.target === e.currentTarget && e.button === 0) {
             setIsPanning(true)
             setStartPan({ x: e.clientX - viewState.x, y: e.clientY - viewState.y })
@@ -29,7 +28,6 @@ export function useCanvasState({ canvasRef, viewState, setViewState }: UseCanvas
         }
     }
 
-    // Handle mouse move for panning
     const handleMouseMove = (e: MouseEvent) => {
         if (isPanning) {
             setViewState(prev => ({
@@ -40,12 +38,10 @@ export function useCanvasState({ canvasRef, viewState, setViewState }: UseCanvas
         }
     }
 
-    // Handle mouse up to stop panning
     const handleMouseUp = () => {
         setIsPanning(false)
     }
 
-    // Handle wheel for zooming
     const handleWheel = (e: WheelEvent) => {
         e.preventDefault()
         const delta = e.deltaY * -CANVAS_ZOOM_WHEEL_FACTOR
@@ -66,12 +62,11 @@ export function useCanvasState({ canvasRef, viewState, setViewState }: UseCanvas
         }
     }
 
-    // Reset view to default
     const resetView = () => {
         setViewState({ x: 0, y: 0, zoom: 1 })
     }
 
-    // Add global mouse up listener
+    // Global listeners to handle mouse release outside canvas
     useEffect(() => {
         const handleGlobalMouseUp = () => setIsPanning(false)
         window.addEventListener('mouseup', handleGlobalMouseUp)
@@ -83,7 +78,7 @@ export function useCanvasState({ canvasRef, viewState, setViewState }: UseCanvas
         }
     }, [])
 
-    // Calculate grid properties
+    // Dynamic grid scaling: doubles/halves at power-of-2 zoom levels
     const gridStep = Math.pow(2, Math.floor(Math.log2(viewState.zoom)))
     const gridSize = CANVAS_BASE_GRID_SIZE / gridStep
     const gridOpacity = Math.min(

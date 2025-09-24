@@ -20,16 +20,15 @@ export function NoteContent({
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const contentRef = useRef<HTMLDivElement>(null)
 
-    // Update local content when prop changes
+    // Sync external content changes
     useEffect(() => {
         setLocalContent(content)
     }, [content])
 
-    // Focus textarea when editing starts
     useEffect(() => {
         if (isEditing && textareaRef.current) {
             textareaRef.current.focus()
-            // Move cursor to end of text for appending
+            // Position cursor at end for natural append behavior
             const length = textareaRef.current.value.length
             textareaRef.current.setSelectionRange(length, length)
         }
@@ -50,7 +49,7 @@ export function NoteContent({
             e.preventDefault()
             onEditEnd()
         }
-        // Stop propagation for normal typing
+        // Prevent note keyboard shortcuts during typing
         if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
             e.stopPropagation()
         }

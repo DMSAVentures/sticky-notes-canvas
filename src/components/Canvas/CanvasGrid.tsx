@@ -11,7 +11,7 @@ interface CanvasGridProps {
 }
 
 export function CanvasGrid({ gridSize, gridOpacity, viewState }: CanvasGridProps) {
-    // Fixed dot sizes - not scaled with zoom to keep them crisp
+    // Keep dots at constant pixel size regardless of zoom for visual clarity
     const smallDotRadius = 1
     const largeDotRadius = 1.5
 

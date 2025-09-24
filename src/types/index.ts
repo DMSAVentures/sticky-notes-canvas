@@ -1,4 +1,3 @@
-// Base note with core properties
 export interface BaseNote {
     id: string
     content: string
@@ -7,27 +6,26 @@ export interface BaseNote {
     height: number
 }
 
-// Note with position for rendering
+// Complete note data including canvas position
 export interface StickyNoteData extends BaseNote {
     x: number
     y: number
     zIndex: number
 }
 
-// Canvas view state
 export interface ViewState {
     x: number
     y: number
     zoom: number
 }
 
-// Note stored with timestamps
+// Persisted note with audit timestamps
 export interface StoredNote extends BaseNote {
     createdAt: number
     updatedAt: number
 }
 
-// Note position in a specific canvas
+// Links note to canvas with position data
 export interface StoredNotePositionCanvas {
     noteId: string
     x: number
@@ -35,7 +33,6 @@ export interface StoredNotePositionCanvas {
     zIndex: number
 }
 
-// Canvas with its note arrangement
 export interface StoredCanvas {
     id: string
     name: string
@@ -51,8 +48,6 @@ export interface LocalStorageAppData {
     notes: Record<string, StoredNote>
     lastActiveCanvasId?: string
 }
-
-// ============= Constants =============
 
 export const NOTE_COLORS = [
     '#FFF9C4', // Pastel Yellow

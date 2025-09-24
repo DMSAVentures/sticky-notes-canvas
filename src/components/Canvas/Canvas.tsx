@@ -34,9 +34,8 @@ export function Canvas() {
         handleNoteDragEnd
     } = useNoteManagement({ canvasRef })
 
-    // Handle clicking on canvas to exit edit mode
     const handleCanvasClick = (e: React.MouseEvent) => {
-        // Only if clicking directly on canvas (not on notes or controls)
+        // Exit edit mode when clicking canvas background
         if (e.target === e.currentTarget) {
             stopEditing()
         }

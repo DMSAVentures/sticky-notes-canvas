@@ -44,7 +44,6 @@ export function StickyNote({
     const isCurrentlyEditing = isEditing(id)
     const shouldFocusThis = shouldAutoFocus(id)
 
-    // Use custom hooks for organized logic
     const { isDragging, handleMouseDown } = useNoteInteraction({
         id, x, y, zoom, onUpdate, onDelete, onSelect, onDragStart, onDragEnd
     })
@@ -71,7 +70,7 @@ export function StickyNote({
         id, onUpdate
     })
 
-    // Auto-focus handling
+    // Focus newly created notes automatically
     useEffect(() => {
         if (shouldFocusThis) {
             onSelect(id)
@@ -79,7 +78,6 @@ export function StickyNote({
         }
     }, [shouldFocusThis, id, onSelect, clearAutoFocus])
 
-    // Focus handler
     const handleFocus = (e: FocusEvent<HTMLDivElement>) => {
         const target = e.target as HTMLElement
         if (!target.closest('button')) {
@@ -87,7 +85,6 @@ export function StickyNote({
         }
     }
 
-    // Delete button handler
     const handleDeleteClick = (e: MouseEvent) => {
         e.stopPropagation()
         e.preventDefault()
@@ -96,7 +93,6 @@ export function StickyNote({
         }
     }
 
-    // Content handlers
     const handleContentChange = (newContent: string) => {
         onUpdate(id, { content: newContent })
     }
@@ -106,7 +102,6 @@ export function StickyNote({
         noteRef.current?.focus()
     }
 
-    // Stop event propagation helper
     const stopPropagation = (e: MouseEvent | FocusEvent) => {
         e.stopPropagation()
         e.preventDefault()
