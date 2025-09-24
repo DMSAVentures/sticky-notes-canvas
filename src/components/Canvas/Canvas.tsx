@@ -45,6 +45,7 @@ export function Canvas() {
         <div
             ref={canvasRef}
             className={styles.canvas}
+            data-testid="canvas"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}

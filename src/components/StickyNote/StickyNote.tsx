@@ -112,6 +112,7 @@ export function StickyNote({
         <article
             ref={noteRef}
             className={`${styles.stickyNote} ${isDragging ? styles.dragging : ''}`}
+            data-testid="sticky-note"
             style={{
                 left: x,
                 top: y,
@@ -136,6 +137,7 @@ export function StickyNote({
             <header className={styles.header} role="toolbar" aria-label="Note controls">
                 <button
                     className={styles.colorButton}
+                    data-testid="color-picker"
                     onClick={handleColorButtonClick}
                     onMouseDown={stopPropagation}
                     onFocus={stopPropagation}
@@ -146,6 +148,7 @@ export function StickyNote({
                 />
                 <button
                     className={styles.deleteButton}
+                    data-testid="delete-button"
                     onClick={handleDeleteClick}
                     onMouseDown={stopPropagation}
                     onFocus={stopPropagation}
@@ -161,6 +164,7 @@ export function StickyNote({
                         <button
                             key={noteColor}
                             className={styles.colorOption}
+                            data-testid={`color-option-${noteColor.replace('#', '')}`}
                             style={{ backgroundColor: noteColor }}
                             onClick={handleColorSelect(noteColor)}
                             onMouseDown={stopPropagation}

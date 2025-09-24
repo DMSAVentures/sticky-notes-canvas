@@ -35,3 +35,26 @@ npm run build
 # Preview production build
 npm run preview
 ```
+
+### Testing
+
+```bash
+# Run E2E tests with Playwright
+npm run test:e2e
+
+# Run tests with Playwright UI (interactive mode)
+npm run test:e2e:ui
+
+# Debug tests step by step
+npm run test:e2e:debug
+```
+
+### Code Quality
+
+```bash
+# Run linter and auto-fix issues
+npm run lint
+
+# Format code
+npm run format
+```

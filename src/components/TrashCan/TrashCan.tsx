@@ -30,6 +30,7 @@ export function TrashCan({ isActive = false }: TrashCanProps) {
         <div
             ref={trashRef}
             className={`${styles.trashCan} ${isActive ? styles.active : ''} ${isHovered ? styles.hovered : ''}`}
+            data-testid="trash-can"
             aria-label="Drop here to delete note"
             role="button"
         >

@@ -69,6 +69,7 @@ export function NoteContent({
                 <textarea
                     ref={textareaRef}
                     className={styles.textarea}
+                    data-testid="note-content-textarea"
                     value={localContent}
                     onChange={handleContentChange}
                     onBlur={handleContentBlur}
@@ -81,6 +82,7 @@ export function NoteContent({
             ) : (
                 <div
                     className={styles.text}
+                    data-testid="note-content"
                     role="textbox"
                     aria-readonly="true"
                     aria-label="Note content (read-only)"

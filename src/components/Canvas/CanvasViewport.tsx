@@ -24,6 +24,7 @@ export function CanvasViewport({
     return (
         <div
             className={styles.viewport}
+            data-testid="canvas-viewport"
             style={{
                 transform: `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.zoom})`,
             }}

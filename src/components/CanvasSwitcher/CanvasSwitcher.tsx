@@ -86,6 +86,7 @@ export function CanvasSwitcher({
                 <span className={styles.title}>Canvases</span>
                 <button
                     className={styles.addButton}
+                    data-testid="new-canvas-button"
                     onClick={onCreateCanvas}
                     title="Create new canvas"
                 >
@@ -100,6 +101,7 @@ export function CanvasSwitcher({
                         className={`${styles.canvasItem} ${
                             canvas.id === currentCanvasId ? styles.active : ''
                         } ${editingId === canvas.id ? styles.editing : ''}`}
+                        data-testid="canvas-item"
                         onClick={() => handleCanvasClick(canvas)}
                         title={index < 9 ? `⌘${index + 1}` : undefined}
                     >
@@ -107,6 +109,7 @@ export function CanvasSwitcher({
                             <input
                                 ref={inputRef}
                                 className={styles.canvasName}
+                                data-testid="rename-canvas-input"
                                 value={editValue}
                                 onChange={handleInputChange}
                                 onBlur={() => handleRenameSubmit(canvas.id)}
@@ -124,6 +127,7 @@ export function CanvasSwitcher({
                         <div className={styles.canvasActions}>
                             <button
                                 className={styles.actionButton}
+                                data-testid="rename-canvas-button"
                                 onClick={(e) => handleRenameClick(e, canvas)}
                                 title="Rename canvas"
                             >
@@ -132,6 +136,7 @@ export function CanvasSwitcher({
                             {canvases.length > 1 && (
                                 <button
                                     className={`${styles.actionButton} ${styles.deleteButton}`}
+                                    data-testid="delete-canvas-button"
                                     onClick={(e) => handleDelete(e, canvas.id)}
                                     title="Delete canvas"
                                 >
