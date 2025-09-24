@@ -1,6 +1,8 @@
 import styles from './App.module.css'
 import { Canvas } from './components/Canvas'
 import { CanvasSwitcher } from './components/CanvasSwitcher'
+import { StorageErrorNotifier } from './components/StorageErrorNotifier'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { CanvasProvider, useCanvas } from './contexts/CanvasContext'
 import { EditingProvider } from './contexts/EditingContext'
 
@@ -27,16 +29,19 @@ function AppContent() {
                 onDeleteCanvas={deleteCanvas}
                 getNoteCount={getNoteCount}
             />
+            <StorageErrorNotifier />
         </div>
     )
 }
 
 export function App() {
     return (
-        <CanvasProvider>
-            <EditingProvider>
-                <AppContent />
-            </EditingProvider>
-        </CanvasProvider>
+        <ErrorBoundary>
+            <CanvasProvider>
+                <EditingProvider>
+                    <AppContent />
+                </EditingProvider>
+            </CanvasProvider>
+        </ErrorBoundary>
     )
 }

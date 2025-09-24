@@ -3,8 +3,7 @@ import {
     LocalStorageAppData,
     StoredCanvas,
     ViewState,
-    STORAGE_KEY,
-    STORAGE_VERSION
+    STORAGE_KEY
 } from '../types'
 
 class StorageService {
@@ -19,31 +18,81 @@ class StorageService {
 
             const parsed = JSON.parse(data) as LocalStorageAppData
 
-            // Version mismatch may require migration in future
-            if (parsed.version !== STORAGE_VERSION) {
-                console.warn('Storage version mismatch')
+            // Validate data structure
+            if (!parsed.canvases || !parsed.notes) {
+                console.error('Invalid storage structure, reinitializing')
+                return this.initializeStorage()
             }
 
             return parsed
         } catch (error) {
             console.error('Failed to load storage:', error)
+
+            // Attempt to recover by backing up corrupted data
+            try {
+                const corruptedData = localStorage.getItem(STORAGE_KEY)
+                if (corruptedData) {
+                    localStorage.setItem(`${STORAGE_KEY}_backup_${Date.now()}`, corruptedData)
+                    console.info('Backed up corrupted data')
+                }
+            } catch (backupError) {
+                console.error('Failed to backup corrupted data:', backupError)
+            }
+
             return null
         }
     }
 
     save(data: LocalStorageAppData): boolean {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+            const serialized = JSON.stringify(data)
+
+            // Check for quota exceeded
+            try {
+                localStorage.setItem(STORAGE_KEY, serialized)
+            } catch (quotaError: any) {
+                if (quotaError?.name === 'QuotaExceededError' ||
+                    quotaError?.code === 22 ||
+                    quotaError?.code === 1014) {
+                    console.error('Storage quota exceeded, attempting cleanup')
+
+                    // Try to clean up old backups
+                    const keys = Object.keys(localStorage)
+                    const backupKeys = keys.filter(k => k.startsWith(`${STORAGE_KEY}_backup_`))
+
+                    if (backupKeys.length > 0) {
+                        backupKeys.sort().slice(0, -1).forEach(key => {
+                            localStorage.removeItem(key)
+                        })
+
+                        // Retry save
+                        localStorage.setItem(STORAGE_KEY, serialized)
+                        console.info('Storage saved after cleanup')
+                    } else {
+                        throw quotaError
+                    }
+                } else {
+                    throw quotaError
+                }
+            }
+
             return true
         } catch (error) {
             console.error('Failed to save storage:', error)
+
+            // Notify user about storage failure
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('storage-error', {
+                    detail: { error, operation: 'save' }
+                }))
+            }
+
             return false
         }
     }
 
     initializeStorage(): LocalStorageAppData {
         return {
-            version: STORAGE_VERSION,
             canvases: {},
             notes: {},
             lastActiveCanvasId: undefined

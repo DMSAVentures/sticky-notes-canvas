@@ -43,7 +43,6 @@ export interface StoredCanvas {
 }
 
 export interface LocalStorageAppData {
-    version: string
     canvases: Record<string, StoredCanvas>
     notes: Record<string, StoredNote>
     lastActiveCanvasId?: string
@@ -61,4 +60,3 @@ export const NOTE_COLORS = [
 ]
 
 export const STORAGE_KEY = 'sticky-notes-app'
-export const STORAGE_VERSION = '1.0.0'

@@ -1,5 +1,6 @@
 import { KeyboardEvent } from 'react'
 import { KEYBOARD_STEP_NORMAL, KEYBOARD_STEP_FAST } from '../constants'
+import { safeConfirm } from '../utils/dom-safety'
 
 interface UseNoteKeyboardProps {
     id: string
@@ -28,7 +29,7 @@ export function useNoteKeyboard({
                 e.preventDefault()
                 onStartEdit()
             } else if (e.key === 'Delete') {
-                if (confirm('Delete this note?')) {
+                if (safeConfirm('Delete this note?')) {
                     onDelete(id)
                 }
             } else if (!isDragging) {

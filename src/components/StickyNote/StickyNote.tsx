@@ -7,6 +7,7 @@ import { useNoteInteraction } from '../../hooks/useNoteInteraction'
 import { useNoteResize } from '../../hooks/useNoteResize'
 import { useNoteKeyboard } from '../../hooks/useNoteKeyboard'
 import { useNoteColors } from '../../hooks/useNoteColors'
+import { safeConfirm } from '../../utils/dom-safety'
 
 interface StickyNoteProps extends StickyNoteData {
     onUpdate: (id: string, updates: Partial<StickyNoteData>) => void
@@ -88,7 +89,7 @@ export function StickyNote({
     const handleDeleteClick = (e: MouseEvent) => {
         e.stopPropagation()
         e.preventDefault()
-        if (confirm('Delete this note?')) {
+        if (safeConfirm('Delete this note?')) {
             onDelete(id)
         }
     }

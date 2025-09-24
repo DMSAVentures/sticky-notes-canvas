@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import styles from './CanvasSwitcher.module.css'
 import { StoredCanvas } from '../../types'
+import { safeConfirm } from '../../utils/dom-safety'
 
 interface CanvasSwitcherProps {
     canvases: StoredCanvas[]
@@ -56,7 +57,7 @@ export function CanvasSwitcher({
     const handleDelete = (e: React.MouseEvent, canvasId: string) => {
         e.stopPropagation()
         if (canvases.length > 1) {
-            if (confirm('Delete this canvas? All notes on this canvas will be lost.')) {
+            if (safeConfirm('Delete this canvas? All notes on this canvas will be lost.')) {
                 onDeleteCanvas(canvasId)
             }
         } else {

@@ -1,6 +1,7 @@
 import { useState, useEffect, MouseEvent } from 'react'
 import { useEditing } from '../contexts/EditingContext'
 import { DRAG_THRESHOLD_PX, TRASH_CAN_SELECTOR } from '../constants'
+import { safeQuerySelector, safeGetBoundingRect } from '../utils/dom-safety'
 
 interface UseNoteInteractionProps {
     id: string
@@ -98,13 +99,12 @@ export function useNoteInteraction({
 
         const handleDragEnd = (e: globalThis.MouseEvent) => {
             // Check if dropped on trash area for deletion
-            const trashCan = document.querySelector(TRASH_CAN_SELECTOR)
-            if (trashCan) {
-                const rect = trashCan.getBoundingClientRect()
-                if (e.clientX >= rect.left && e.clientX <= rect.right &&
-                    e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                    onDelete(id)
-                }
+            const trashCan = safeQuerySelector(TRASH_CAN_SELECTOR)
+            const rect = safeGetBoundingRect(trashCan)
+            if (rect &&
+                e.clientX >= rect.left && e.clientX <= rect.right &&
+                e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                onDelete(id)
             }
 
             setIsDragging(false)

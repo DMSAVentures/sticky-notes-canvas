@@ -45,36 +45,47 @@ export function CanvasProvider({ children }: CanvasProviderProps) {
 
     // Initialize canvas state from localStorage on mount
     useEffect(() => {
-        const storage = storageService.load()
-        const allCanvases = storageService.getAllCanvases()
-        setCanvases(allCanvases)
+        try {
+            const storage = storageService.load()
+            const allCanvases = storageService.getAllCanvases()
+            setCanvases(allCanvases)
 
-        if (storage && storage.lastActiveCanvasId) {
-            const canvasData = storageService.loadCanvas(storage.lastActiveCanvasId)
-            if (canvasData) {
-                setCurrentCanvasId(storage.lastActiveCanvasId)
-                setNotes(canvasData.notes)
-                setViewState(canvasData.canvas.viewState)
-                const maxZ = Math.max(0, ...canvasData.notes.map(n => n.zIndex))
-                setNextZIndex(maxZ + 1)
-            }
-        } else {
-            if (allCanvases.length === 0) {
-                const newCanvas = storageService.createCanvas('Canvas 1')
-                setCurrentCanvasId(newCanvas.id)
-                storageService.saveCanvas(newCanvas.id, [], { x: 0, y: 0, zoom: 1 })
-                setCanvases([newCanvas])
-            } else {
-                const firstCanvas = allCanvases[0]
-                const canvasData = storageService.loadCanvas(firstCanvas.id)
+            if (storage && storage.lastActiveCanvasId) {
+                const canvasData = storageService.loadCanvas(storage.lastActiveCanvasId)
                 if (canvasData) {
-                    setCurrentCanvasId(firstCanvas.id)
+                    setCurrentCanvasId(storage.lastActiveCanvasId)
                     setNotes(canvasData.notes)
                     setViewState(canvasData.canvas.viewState)
                     const maxZ = Math.max(0, ...canvasData.notes.map(n => n.zIndex))
                     setNextZIndex(maxZ + 1)
                 }
+            } else {
+                if (allCanvases.length === 0) {
+                    const newCanvas = storageService.createCanvas('Canvas 1')
+                    setCurrentCanvasId(newCanvas.id)
+                    storageService.saveCanvas(newCanvas.id, [], { x: 0, y: 0, zoom: 1 })
+                    setCanvases([newCanvas])
+                } else {
+                    const firstCanvas = allCanvases[0]
+                    const canvasData = storageService.loadCanvas(firstCanvas.id)
+                    if (canvasData) {
+                        setCurrentCanvasId(firstCanvas.id)
+                        setNotes(canvasData.notes)
+                        setViewState(canvasData.canvas.viewState)
+                        const maxZ = Math.max(0, ...canvasData.notes.map(n => n.zIndex))
+                        setNextZIndex(maxZ + 1)
+                    }
+                }
             }
+        } catch (error) {
+            console.error('Failed to initialize canvas:', error)
+            // Initialize with default canvas on error
+            const newCanvas = storageService.createCanvas('Canvas 1')
+            setCurrentCanvasId(newCanvas.id)
+            setCanvases([newCanvas])
+            setNotes([])
+            setViewState({ x: 0, y: 0, zoom: 1 })
+            setNextZIndex(1)
         }
     }, [])
 
@@ -84,8 +95,16 @@ export function CanvasProvider({ children }: CanvasProviderProps) {
 
         setIsSaving(true)
         const timeoutId = setTimeout(() => {
-            storageService.saveCanvas(currentCanvasId, notes, viewState)
-            setIsSaving(false)
+            try {
+                const success = storageService.saveCanvas(currentCanvasId, notes, viewState)
+                if (!success) {
+                    console.warn('Failed to save canvas state')
+                }
+            } catch (error) {
+                console.error('Error saving canvas:', error)
+            } finally {
+                setIsSaving(false)
+            }
         }, 500)
 
         return () => clearTimeout(timeoutId)
@@ -94,18 +113,22 @@ export function CanvasProvider({ children }: CanvasProviderProps) {
     const selectCanvas = (canvasId: string) => {
         if (canvasId === currentCanvasId) return
 
-        // Persist current state before switching
-        if (currentCanvasId) {
-            storageService.saveCanvas(currentCanvasId, notes, viewState)
-        }
+        try {
+            // Persist current state before switching
+            if (currentCanvasId) {
+                storageService.saveCanvas(currentCanvasId, notes, viewState)
+            }
 
-        const canvasData = storageService.loadCanvas(canvasId)
-        if (canvasData) {
-            setCurrentCanvasId(canvasId)
-            setNotes(canvasData.notes)
-            setViewState(canvasData.canvas.viewState)
-            const maxZ = Math.max(0, ...canvasData.notes.map(n => n.zIndex))
-            setNextZIndex(maxZ + 1)
+            const canvasData = storageService.loadCanvas(canvasId)
+            if (canvasData) {
+                setCurrentCanvasId(canvasId)
+                setNotes(canvasData.notes)
+                setViewState(canvasData.canvas.viewState)
+                const maxZ = Math.max(0, ...canvasData.notes.map(n => n.zIndex))
+                setNextZIndex(maxZ + 1)
+            }
+        } catch (error) {
+            console.error('Failed to switch canvas:', error)
         }
     }
 
